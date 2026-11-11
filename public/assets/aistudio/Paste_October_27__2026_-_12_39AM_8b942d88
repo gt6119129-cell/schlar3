@@ -1,0 +1,592 @@
+# SCHLAR — PROMPT 10: COMPLETE CRUD, DEMO DATA, VALIDATION & WORKFLOW RELIABILITY
+
+## 1. YOUR MISSION
+
+Continue developing the **existing SCHLAR school-management project**. Prompts 1–9 have already established the foundation, role workspaces, shared school modules, and cross-role integration.
+
+Your mission now is to make every existing module genuinely usable through complete frontend interactions, realistic interconnected demo data, correct validation, safe record management, and dependable workflows.
+
+**Do not create a new project. Do not redesign the application from scratch. Do not replace existing pages with generic dashboards or static mockups.**
+
+Inspect the current project and its implementation first. Identify which features are complete, partially implemented, broken, or missing. Then improve the actual code.
+
+The result must be a professional, responsive, user-friendly school-management demo that behaves consistently when a user creates, views, edits, searches, filters, updates, archives, or deletes records.
+
+## 2. NON-NEGOTIABLE RULES
+
+1. Preserve the product name **SCHLAR** everywhere.
+2. Preserve the existing architecture, frameworks, routing, component structure, styling system, theme selector, palette options, and established navigation unless a specific defect requires a targeted change.
+3. Preserve all working features from Prompts 1–9.
+4. Preserve the exact 10 established roles:
+   - Admin
+   - Vice Principal
+   - Teacher
+   - Parent
+   - Accountant / Fee Manager
+   - HR / Staff Manager
+   - Librarian
+   - Transport Manager
+   - Receptionist / Front Office
+   - Exam Coordinator
+5. **Parent must have a mobile/app workspace only. Do not create a Parent web portal.**
+6. Maintain role-specific permissions. Never expose unauthorized student, financial, staff, or administrative information.
+7. Simplify workflows and navigation without removing advanced functionality.
+8. Reuse existing components and utilities where practical. Do not duplicate modules unnecessarily.
+9. Do not add fake buttons, decorative actions, placeholder pages, or interactions that only change their appearance without changing application state.
+10. Do not claim backend integration, real payments, SMS delivery, email delivery, or cloud persistence unless those capabilities are genuinely implemented and available.
+11. Do not replace meaningful existing data with empty arrays or reset the project just to make implementation easier.
+12. Make changes directly in the project. Do not respond with recommendations alone.
+
+## 3. AUDIT THE EXISTING IMPLEMENTATION FIRST
+
+Before modifying code, inspect the current implementation and identify:
+
+- Existing routes, pages, role workspaces, and layouts.
+- Existing data models, shared state, storage utilities, and mutation functions.
+- Existing create, view, edit, archive, and delete operations.
+- Existing search, filters, sorting, pagination, and bulk actions.
+- Existing validation and confirmation dialogs.
+- Existing demo records and relationships between records.
+- Existing permissions and access restrictions.
+- Existing loading, empty, error, and success states.
+- Existing modules with buttons or forms that do not work correctly.
+- Any duplicate records, inconsistent identifiers, hardcoded display data, or state synchronization bugs.
+
+Prioritize repairing incomplete implementations over creating parallel systems.
+
+After the audit, proceed with implementation without waiting for approval unless a genuinely blocking decision is required.
+
+## 4. COMPLETE CRUD OPERATIONS ACROSS EXISTING MODULES
+
+For every existing module, implement the appropriate supported operations.
+
+CRUD means:
+
+- **Create:** Add a new record using a functional form.
+- **Read:** Display accurate record details and lists.
+- **Update:** Edit an existing record and save changes.
+- **Delete:** Remove a record only when permitted and safe.
+
+Where permanent deletion could damage school records or relationships, implement archive/deactivate functionality instead, with an explicit confirmation and appropriate recovery option where practical.
+
+Audit the following areas wherever they already exist in SCHLAR:
+
+### A. Student management
+
+Support:
+
+- Add a student.
+- View a detailed student profile.
+- Edit personal, academic, contact, and enrollment information.
+- Assign class, section, academic year, and relevant identifiers.
+- Update enrollment status.
+- Search and filter students.
+- View linked parent/guardian information.
+- View relevant attendance, examination, fee, library, and transport records according to permissions.
+- Archive or deactivate a student without unintentionally destroying historical records.
+
+Prevent duplicate student identifiers and invalid class or section assignments.
+
+### B. Staff and teacher management
+
+Support:
+
+- Add staff members and teachers.
+- View detailed staff profiles.
+- Edit personal and professional information.
+- Assign department, designation, subjects, classes, and sections where applicable.
+- Update employment status.
+- Search and filter staff.
+- View relevant timetable, attendance, leave, and HR information.
+- Prevent conflicting or invalid assignments.
+
+Do not assume every staff member is a teacher. Preserve distinctions between teaching and non-teaching staff.
+
+### C. Parent and guardian records
+
+Support authorized creation, viewing, editing, and relationship management through the appropriate existing administrative workspaces.
+
+Allow authorized users to associate a student with one or more guardians where the data model supports it.
+
+Maintain the **Parent mobile-app-only restriction**. Parent-facing operations must be accessible through the Parent mobile/app workspace, not a newly created web portal.
+
+### D. Classes, sections, subjects, and academic years
+
+Support the existing system's applicable operations for:
+
+- Creating and editing classes.
+- Managing sections.
+- Managing subjects.
+- Assigning teachers to subjects and classes.
+- Managing academic-year records and status.
+- Associating students with valid classes and sections.
+
+Prevent duplicate class/section identifiers, invalid assignments, and accidental removal of records referenced by existing students, timetables, attendance, or results.
+
+Do not allow an inactive academic year to be selected for a workflow that requires an active year unless the existing rules explicitly permit it.
+
+### E. Timetable management
+
+Ensure authorized users can:
+
+- Create and edit timetable entries.
+- Assign a valid class, section, subject, teacher, room, day, and period where supported.
+- View timetables by class, teacher, and other existing supported filters.
+- Detect teacher, room, and class-period conflicts.
+- Correct or remove invalid timetable entries safely.
+
+Do not allow the same teacher to be assigned to two simultaneous classes, or a class to have conflicting lessons in the same period, unless an explicitly supported scheduling rule permits it.
+
+### F. Attendance
+
+Support the existing attendance workflows for the appropriate roles.
+
+- Load the correct students for the selected class, section, subject, date, and period.
+- Save attendance changes to shared application state.
+- Display the updated attendance immediately in relevant authorized views.
+- Support corrections when permitted.
+- Prevent accidental duplicate attendance sessions.
+- Validate that the selected teacher is authorized to mark the chosen class or subject.
+- Preserve the established attendance symbols: **✓ for Present and X for Absent**.
+- Preserve the existing teacher attendance layout, including one row per student and period columns wherever that layout has already been established.
+
+Do not let an unrelated class, subject, or teacher assignment silently produce an incorrect or empty attendance list.
+
+### G. Examinations and results
+
+Support the existing examination workflows:
+
+- Create and edit examination records.
+- Configure available subjects, classes, dates, maximum marks, and other existing supported fields.
+- Enter and edit marks for authorized users.
+- Validate marks against the permitted range.
+- Prevent duplicate or conflicting examination entries.
+- Calculate totals, percentages, grades, and pass/fail status only according to the grading rules already defined in the project.
+- Update authorized result views after marks change.
+- Preserve previously saved marks when editing another part of an examination.
+
+Do not invent grading rules if the project already defines them.
+
+### H. Fees and accounting
+
+Support existing fee-management functionality:
+
+- Create and edit applicable fee structures and assignments.
+- View student fee balances and transaction histories.
+- Record demo fee payments or transactions where permitted.
+- Validate amounts and transaction fields.
+- Prevent accidental duplicate transaction submissions.
+- Calculate outstanding balances from the actual demo transaction data.
+- Reflect authorized changes consistently in the relevant student and Parent mobile-app views.
+- Protect transaction history from unsafe deletion or silent modification.
+
+Clearly label all simulated payments as demo transactions. Do not claim that real money was collected or that a payment gateway is connected.
+
+### I. Library management
+
+Support existing book, copy, member, issue, and return workflows:
+
+- Add and edit book records.
+- Manage available copy counts where supported.
+- Issue books to eligible members.
+- Record returns.
+- Track due dates and overdue status.
+- Prevent issuing unavailable copies.
+- Prevent invalid duplicate active loans.
+- Update availability and loan history after each operation.
+
+### J. Transport management
+
+Support the existing vehicle, route, stop, assignment, and transport workflows:
+
+- Create and edit relevant transport records.
+- Assign students to valid routes and stops.
+- Maintain vehicle capacity constraints where capacity is tracked.
+- Prevent invalid or conflicting assignments.
+- Update authorized student and Parent mobile-app views.
+- Preserve relevant historical assignments where necessary.
+
+### K. Reception, admissions, and visitors
+
+Support existing records for:
+
+- Enquiries and prospective admissions.
+- Follow-up activities.
+- Admission status.
+- Appointments.
+- Visitor entries and check-in/check-out.
+- Contact information and notes.
+
+Validate required fields, preserve status history where supported, and prevent duplicate submissions.
+
+### L. HR and staff administration
+
+Support existing staff administration features, including applicable leave requests, attendance, employment records, and other existing HR workflows.
+
+- Validate dates and required fields.
+- Prevent invalid date ranges.
+- Maintain clear request statuses.
+- Allow authorized users to review and update requests.
+- Reflect approved or rejected decisions in the relevant views.
+- Preserve employment history and other important records where appropriate.
+
+### M. Notifications, profiles, and activity history
+
+Where these modules exist:
+
+- Allow authorized users to update supported profile fields.
+- Ensure notification read/unread actions change state.
+- Ensure supported notification preferences persist.
+- Record meaningful activity history for important changes.
+- Display accurate actor, action, affected record, and timestamp information where supported.
+
+Do not fabricate activity logs for actions that never occurred.
+
+This list is an audit checklist, not permission to replace the existing design. Apply the appropriate operations to modules that actually exist and preserve their established structure.
+
+## 5. USE ONE CONSISTENT DATA SOURCE
+
+Every page displaying the same entity must use consistent application data.
+
+For example:
+
+- Editing a student's name must update relevant student lists and authorized linked profiles.
+- Changing a student's class must update the applicable class roster and related views.
+- Updating a timetable must affect the relevant class and teacher timetable.
+- Changing attendance must update the corresponding authorized attendance summary.
+- Updating examination marks must update the relevant result views.
+- Recording a fee transaction must update the appropriate transaction history and calculated balance.
+- Issuing or returning a library book must update book availability and the loan record.
+- Changing a transport assignment must update the appropriate student transport details.
+
+Requirements:
+
+1. Reuse the shared data layer established in earlier prompts.
+2. Avoid creating separate independent copies of the same record for different roles.
+3. Use stable identifiers rather than relying only on names or array positions.
+4. Update related state consistently after successful mutations.
+5. Avoid stale data caused by duplicated local state.
+6. Handle relationships explicitly and safely.
+7. Avoid circular update logic and uncontrolled re-render loops.
+8. If the current architecture lacks a suitable mutation layer, introduce a small, maintainable solution compatible with the existing architecture rather than rebuilding the application.
+
+## 6. CREATE REALISTIC, INTERCONNECTED DEMO DATA
+
+The application must open with useful demo data instead of empty dashboards or repetitive placeholder records.
+
+Inspect existing data first and preserve useful records. Add or repair data only where needed.
+
+Include coherent sample records for the modules supported by the current project, such as:
+
+- Students with unique identifiers.
+- Parents and guardians linked to the correct students.
+- Classes, sections, subjects, and academic years.
+- Teachers and other staff members.
+- Timetable entries that respect scheduling constraints.
+- Attendance sessions and attendance records.
+- Examinations and marks within valid ranges.
+- Fee structures, transactions, and balances that reconcile.
+- Library books, copies, and active loans.
+- Transport vehicles, routes, stops, and student assignments.
+- Admissions enquiries and visitor records.
+- Staff and HR records relevant to existing workflows.
+
+Requirements:
+
+- Use internally consistent fictional demo data.
+- Use realistic, varied values instead of repeating the same name or record.
+- Keep identifiers unique.
+- Maintain valid relationships between records.
+- Ensure totals, counts, statuses, and summaries agree with their underlying data.
+- Do not expose real personal information.
+- Do not create records that contradict one another.
+
+Provide a predictable demo reset or reseed action if practical, but protect it with confirmation and do not reset data unexpectedly during ordinary navigation.
+
+Resetting demo data must restore a known, internally consistent initial dataset.
+
+## 7. FORM VALIDATION AND BUSINESS RULES
+
+Every create and edit form must validate its fields before saving.
+
+### Required validation
+
+- Required fields cannot be empty.
+- Numeric values must be valid and within appropriate limits.
+- Email and phone fields must follow the application's existing validation conventions.
+- Dates must be valid and chronologically consistent.
+- Foreign-key relationships must reference existing records.
+- Duplicate identifiers must be rejected.
+- Dependent fields must update when their parent selection changes.
+- Invalid selections must not silently create broken relationships.
+- Financial amounts must not be negative unless the existing business rules explicitly allow them.
+- Marks cannot exceed maximum marks or fall below permitted minimums.
+- Timetable assignments must be checked for conflicts.
+- Library issues must respect availability.
+- Transport assignments must respect configured constraints.
+- Destructive actions must require confirmation where appropriate.
+
+### Validation UX
+
+- Show clear, human-readable error messages beside the relevant fields.
+- Preserve the user's entered values after validation errors.
+- Identify what must be corrected and how.
+- Focus on the first invalid field where practical.
+- Disable repeated submissions while a mutation is processing.
+- Display a clear success message after a successful save.
+- Do not close a form or clear its values when validation or saving fails.
+- Use the existing design system for inline errors, alerts, confirmation dialogs, and notifications.
+
+Avoid overly strict validation that rejects reasonable data without a real business reason.
+
+## 8. SAFE CREATE, EDIT, ARCHIVE, AND DELETE BEHAVIOR
+
+Every action must produce a real and observable state change.
+
+### Create
+
+- Validate the submitted data.
+- Create a record with a stable unique identifier.
+- Update the relevant list and summaries.
+- Close the form only after successful creation.
+- Provide a clear confirmation.
+
+### Edit
+
+- Load the selected record's current values.
+- Save only intended changes.
+- Preserve unrelated fields and relationships.
+- Update all relevant views.
+- Handle records that were removed or changed before the form was submitted.
+
+### Delete and archive
+
+- Ask for confirmation before destructive actions.
+- Explain important consequences when related records exist.
+- Prefer archive, deactivate, or another appropriate safe alternative for important school records.
+- Prevent deletion that would leave invalid relationships.
+- Preserve historical attendance, results, financial transactions, and other records that must remain auditable.
+- Provide recovery or undo where practical and safe.
+- Never silently delete related records without an explicit, justified rule.
+
+### Duplicate submission protection
+
+- Prevent rapid repeated clicks from creating duplicate records.
+- Prevent accidental duplicate form submissions.
+- Where appropriate, check whether a logically identical record already exists.
+- Do not incorrectly reject legitimate records that share common fields.
+
+## 9. SEARCH, FILTERS, SORTING, AND PAGINATION
+
+Audit existing list pages and make their controls functional.
+
+Where relevant, implement:
+
+- Search across meaningful fields.
+- Filters for class, section, status, academic year, date range, category, and other applicable fields.
+- Sorting by relevant columns.
+- Pagination or another suitable approach for longer lists.
+- Clear filters and reset search.
+- Useful result counts.
+- A clear empty state when no records match.
+- Appropriate bulk operations only where supported and authorized.
+
+Requirements:
+
+- Search and filters must work together.
+- Changing a filter must update the displayed results.
+- Editing a record must not cause it to appear under an incorrect filter.
+- Pagination must remain valid when records are added, archived, or removed.
+- Avoid unnecessary controls that do not help users complete a task.
+
+## 10. ROLE PERMISSIONS AND SECURITY BOUNDARIES
+
+All operations must respect the permissions already established in SCHLAR.
+
+- Admin and Vice Principal must retain their distinct responsibilities.
+- Teacher access must follow assigned teaching responsibilities and existing permission rules.
+- Accountant / Fee Manager must retain appropriate financial permissions.
+- HR / Staff Manager must retain appropriate staff administration permissions.
+- Librarian must use the established library permissions.
+- Transport Manager must use the established transport permissions.
+- Receptionist / Front Office must use the established reception permissions.
+- Exam Coordinator must use the established examination permissions.
+- Parent must access only permitted information for their linked child or children through the mobile/app workspace.
+- Do not create a Parent web portal.
+- Do not allow unauthorized users to access restricted records by entering a route directly or manipulating the visible UI.
+
+Keep permission checks centralized where the existing architecture supports it. Do not treat hiding a button as the only authorization check.
+
+Because this is a frontend demo, describe these controls honestly as frontend permission simulation unless a genuine server-side authorization layer exists.
+
+## 11. PERSISTENCE AND ERROR HANDLING
+
+Use the persistence mechanism already present in the project.
+
+If the project is frontend-only:
+
+- Persist demo mutations using the existing local persistence strategy where appropriate.
+- Preserve data across refreshes when the current architecture supports it.
+- Handle unavailable, malformed, or outdated saved data gracefully.
+- Provide safe fallback behavior rather than crashing the entire app.
+- Avoid overwriting valid saved data with empty initial state during startup.
+- Keep demo data consistent across navigation and role workspaces.
+- Make reset behavior explicit.
+
+If the project already uses an API, preserve its existing contracts and error-handling conventions. Do not replace working API integration with fabricated local success responses.
+
+If a save fails, keep the user's work available when practical and display an actionable error.
+
+Never claim that browser-local demo persistence is a production database.
+
+## 12. PROFESSIONAL USER EXPERIENCE
+
+Keep SCHLAR visually consistent with its existing design system and selected theme.
+
+Every relevant screen should provide:
+
+- Clear page titles and helpful descriptions.
+- Consistent action placement.
+- Readable tables and detail views.
+- Clear primary and secondary actions.
+- Accessible form labels and controls.
+- Responsive layouts for desktop, tablet, and mobile.
+- Loading indicators where appropriate.
+- Empty states with useful next steps.
+- Success, warning, and error feedback.
+- Confirmation for risky actions.
+- Consistent formatting for dates, currency, counts, and statuses.
+- Appropriate handling of long names and large tables.
+
+Use concise labels that a first-time school user can understand. Keep advanced operations available through logical sections or contextual actions rather than removing them.
+
+Do not add excessive cards, decorative charts, unnecessary animations, or clutter.
+
+## 13. ACCESSIBILITY AND RESPONSIVE BEHAVIOR
+
+Test important CRUD workflows at desktop and narrow mobile widths.
+
+- Forms must remain usable on small screens.
+- Tables should use an appropriate responsive layout, horizontal scrolling, or another readable presentation.
+- Dialogs must fit within the viewport.
+- Action buttons must remain reachable.
+- Status must not be communicated through color alone.
+- Keyboard navigation and visible focus states should work.
+- Inputs must have meaningful labels.
+- Confirmation and error messages must be understandable without relying solely on visual placement.
+
+Preserve the distinction between the web workspaces and the mobile/app workspaces already established in the project.
+
+## 14. AUTOMATED AND MANUAL TESTING
+
+Do not assume a feature works because the code compiles or the screen renders.
+
+Run the available project checks, such as existing linting, type checks, tests, and build commands, where supported by the project.
+
+Add or update tests using the testing tools already available. Do not introduce an unnecessarily large new testing framework.
+
+### Minimum functional test checklist
+
+Test these scenarios using the actual implementation:
+
+1. Create a valid student and verify it appears in the correct list.
+2. Edit the student and verify the updated values appear in relevant authorized views.
+3. Reject a duplicate student identifier.
+4. Reject an invalid class or section assignment.
+5. Verify unauthorized roles cannot perform restricted mutations.
+6. Create and edit a staff record without corrupting an existing teacher assignment.
+7. Create a timetable entry and detect a real scheduling conflict.
+8. Mark attendance and verify the saved status is reflected in relevant views.
+9. Enter examination marks and reject out-of-range values.
+10. Record a demo fee transaction and verify the balance reconciles.
+11. Issue and return a library book and verify availability changes correctly.
+12. Change a transport assignment and verify the linked student information updates.
+13. Search and filter a list, edit a matching record, and verify the results remain correct.
+14. Confirm that cancellation of a destructive action does not delete anything.
+15. Confirm that archive/delete behavior preserves required historical records.
+16. Refresh the page and verify expected persistence.
+17. Reset demo data and verify a consistent baseline is restored.
+18. Check that Parent information remains limited to the Parent mobile/app workspace and permitted linked-child data.
+19. Navigate between roles and verify the shared records remain consistent.
+20. Check browser console errors, broken routes, failed actions, and layout problems at narrow widths.
+
+Adapt these tests to the modules that actually exist. If a test cannot be performed because a capability is absent, report that limitation explicitly instead of claiming success.
+
+## 15. IMPLEMENTATION ORDER
+
+Complete the work in this order:
+
+**Phase 1 — Audit**
+- Inspect current implementation.
+- Identify incomplete or broken CRUD operations.
+- Map data models, relationships, permissions, and persistence.
+
+**Phase 2 — Shared data reliability**
+- Reuse or repair the established data source.
+- Ensure stable IDs and consistent mutations.
+- Repair invalid relationships and duplicate-state problems.
+
+**Phase 3 — CRUD completion**
+- Implement and repair create, read, edit, archive, and safe deletion.
+- Ensure every visible action has a working outcome.
+
+**Phase 4 — Validation**
+- Implement field-level validation and business rules.
+- Add conflict detection and duplicate prevention.
+
+**Phase 5 — Demo data**
+- Repair and complete realistic, interconnected demo records.
+- Reconcile totals, relationships, and summaries.
+
+**Phase 6 — Lists and persistence**
+- Fix search, filters, sorting, pagination, and expected persistence.
+- Ensure error and empty states work.
+
+**Phase 7 — Permissions and responsive UX**
+- Verify role restrictions.
+- Polish forms, dialogs, feedback, and responsive layouts without redesigning the entire product.
+
+**Phase 8 — Regression testing**
+- Test existing features from Prompts 1–9.
+- Fix regressions introduced by the new changes.
+- Run the available checks.
+
+Do not stop after writing a plan. Implement the changes.
+
+## 16. DEFINITION OF DONE
+
+Prompt 10 is complete only when:
+
+- Existing SCHLAR architecture and established workspaces are preserved.
+- CRUD operations work for the relevant existing modules.
+- Forms validate meaningful business rules.
+- Duplicate and invalid records are prevented where appropriate.
+- Related records remain consistent.
+- Demo data is realistic, coherent, and internally consistent.
+- Search and filters work where provided.
+- Mutations persist according to the existing frontend/API architecture.
+- Risky operations are handled safely.
+- Permissions remain role-appropriate.
+- Parent has a mobile/app workspace only, with no Parent web portal.
+- Existing theme and navigation systems still work.
+- The app remains responsive and understandable for first-time users.
+- Important existing features have passed regression checks.
+- Build and test results are reported honestly.
+
+## 17. FINAL COMPLETION REPORT
+
+After implementation, provide a concise but specific report containing:
+
+1. **Files changed:** List the main files modified and why.
+2. **CRUD coverage:** Which modules now support working create, read, edit, archive, and/or delete operations.
+3. **Validation:** The business rules and duplicate/conflict checks implemented.
+4. **Demo data:** What records were added or repaired and how consistency was maintained.
+5. **Persistence:** Exactly how demo changes are stored and what survives refresh.
+6. **Permissions:** Any permission changes or restrictions verified.
+7. **Tests performed:** Report actual results, including failures.
+8. **Known limitations:** Clearly list anything still incomplete or dependent on a backend.
+9. **Next steps:** Identify remaining work for Prompt 11 without prematurely redesigning or duplicating it.
+
+Do not report a feature as completed unless you inspected or tested the actual implementation.
+
+**FINAL INSTRUCTION:** Make SCHLAR dependable and fully interactive at the frontend-demo level. Preserve existing working functionality, repair weak areas, maintain coherent shared data, and deliver tested changes—not merely an attractive interface or a description of what should be built.

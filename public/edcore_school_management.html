@@ -1,0 +1,2773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduCore — Greenfield International School Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+    ::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.5); }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen selection:bg-blue-600 selection:text-white antialiased">
+  <div id="app"></div>
+
+  <script>
+    // EduCore Comprehensive Standalone School Management Suite
+    const STORAGE_KEY = 'educore_standalone_v3';
+
+    const THEMES = {
+      navy: { name: 'Campus Navy', hex: '#1e40af', primary: 'bg-blue-700', hover: 'hover:bg-blue-800', text: 'text-blue-700', light: 'bg-blue-50', border: 'border-blue-200' },
+      slate: { name: 'Modern Slate', hex: '#334155', primary: 'bg-slate-700', hover: 'hover:bg-slate-800', text: 'text-slate-700', light: 'bg-slate-100', border: 'border-slate-300' },
+      emerald: { name: 'Academic Emerald', hex: '#047857', primary: 'bg-emerald-700', hover: 'hover:bg-emerald-800', text: 'text-emerald-700', light: 'bg-emerald-50', border: 'border-emerald-200' },
+      indigo: { name: 'Royal Indigo', hex: '#4338ca', primary: 'bg-indigo-700', hover: 'hover:bg-indigo-800', text: 'text-indigo-700', light: 'bg-indigo-50', border: 'border-indigo-200' },
+      amber: { name: 'Warm Amber', hex: '#b45309', primary: 'bg-amber-700', hover: 'hover:bg-amber-800', text: 'text-amber-700', light: 'bg-amber-50', border: 'border-amber-200' },
+      rose: { name: 'Heritage Rose', hex: '#be123c', primary: 'bg-rose-700', hover: 'hover:bg-rose-800', text: 'text-rose-700', light: 'bg-rose-50', border: 'border-rose-200' }
+    };
+
+    const ROLES = [
+      { id: 'principal', title: 'Principal / School Admin', platform: 'web', clearance: 'Level 5 · Institutional Admin', desc: 'Overall school administration, student/teacher/staff management, timetable, exams, finance & settings.', user: 'Dr. Evelyn Montgomery', designation: 'Head of Institution' },
+      { id: 'vice_principal', title: 'Vice Principal / Academic Coordinator', platform: 'web', clearance: 'Level 4 · Academic Oversight', desc: 'Class and teacher coordination, syllabus pacing, attendance monitoring, mark endorsements & timetables.', user: 'Prof. Marcus Vance', designation: 'Academic Director' },
+      { id: 'teacher_web', title: 'Teacher — Web Portal', platform: 'web', clearance: 'Level 2 · Classroom Scope', desc: 'Classes (8-A, 8-B, 9-B), student roll call, marks gradebook, assignments, and parent messages.', user: 'Mrs. Shalini Verma', designation: 'Senior Faculty (Math)' },
+      { id: 'accountant', title: 'Accountant / Finance Staff', platform: 'web', clearance: 'Level 3 · Bursar Controller', desc: 'Student fees, fee structures, collections ledger, pending/overdue dues, receipts and financial audits.', user: 'Mr. Rakesh Singhal', designation: 'Chief Bursar' },
+      { id: 'receptionist', title: 'Receptionist / Front Office', platform: 'web', clearance: 'Level 2 · Front Desk Scope', desc: 'Enquiries CRM, student admissions desk, visitor passes & log, appointments, and student emergency directory.', user: 'Ms. Priya Menon', designation: 'Front Desk Executive' },
+      { id: 'librarian', title: 'Librarian', platform: 'web', clearance: 'Level 2 · Repository Scope', desc: 'Book catalog, library cards & members, issue/return circulation desk, due books, and overdue fines.', user: 'Mr. David Fernandez', designation: 'Chief Librarian' },
+      { id: 'teacher_mobile', title: 'Teacher — Mobile App', platform: 'mobile', clearance: 'Level 2 · Mobile Faculty', desc: 'Daily classes, quick 1-tap roll call, instant mark entry, homework broadcasts, and faculty schedule.', user: 'Mrs. Shalini Verma', designation: 'Class 8-A Teacher' },
+      { id: 'parent_mobile', title: 'Parent — Mobile App', platform: 'mobile', clearance: 'Level 1 · Guardian Scope', desc: 'Multi-child switcher (Aarav 8-A & Ananya 5-B), marks card, attendance calendar, UPI fee pay, and teacher chat.', user: 'Dr. Rajesh Sharma', designation: 'Parent / Guardian' }
+    ];
+
+    const PERMISSION_MATRIX = [
+      { module: 'Student Enrollment & Dossiers', principal: 'Full Control', vice_principal: 'View & Edit Academic', teacher_web: 'View Assigned (8-A, 9-B)', accountant: 'View Fees Only', receptionist: 'Create & View Directory', librarian: 'View Library Card', teacher_mobile: 'View Assigned', parent_mobile: 'View Own Children' },
+      { module: 'Staff & Faculty HR', principal: 'Full Control', vice_principal: 'Coordinate & Leaves', teacher_web: 'View Colleagues', accountant: 'View Payroll Info', receptionist: 'Staff Directory', librarian: 'Staff Directory', teacher_mobile: 'Apply Leave', parent_mobile: 'Teacher Contacts' },
+      { module: 'Master Timetable', principal: 'Create & Publish', vice_principal: 'Coordinate & Resolve', teacher_web: 'View Schedule', accountant: 'No Access', receptionist: 'View Free Slots', librarian: 'View Class Slots', teacher_mobile: 'View Today Classes', parent_mobile: 'View Child Timetable' },
+      { module: 'Daily Attendance Registers', principal: 'School-Wide Audit', vice_principal: 'Monitor & Flags (<75%)', teacher_web: 'Daily Roll-Call Mark', accountant: 'No Access', receptionist: 'Late Gate Entry Log', librarian: 'No Access', teacher_mobile: '1-Tap Roll Call', parent_mobile: 'Daily Absence Alerts' },
+      { module: 'Exams & Gradebook Marks', principal: 'Institutional Oversight', vice_principal: 'Moderation & Endorse', teacher_web: 'Enter & Edit Marks', accountant: 'No Access', receptionist: 'No Access', librarian: 'No Access', teacher_mobile: 'Enter Marks', parent_mobile: 'View Term Report Card' },
+      { module: 'Finance, Fees & Billing', principal: 'Institutional Realization', vice_principal: 'View Summary Only', teacher_web: 'No Access', accountant: 'Full Control & Collect', receptionist: 'View Fee Clearance', librarian: 'Collect Overdue Fines', teacher_mobile: 'No Access', parent_mobile: 'Pay Fees via UPI' },
+      { module: 'Front Office & Visitors', principal: 'Security Oversight', vice_principal: 'Campus Access', teacher_web: 'Parent Appointments', accountant: 'No Access', receptionist: 'Full Control & Passes', librarian: 'No Access', teacher_mobile: 'View Appointments', parent_mobile: 'Book Appointment' },
+      { module: 'Library Circulation', principal: 'Institutional Oversight', vice_principal: 'Reading Oversight', teacher_web: 'Borrow Books', accountant: 'Audit Book Fines', receptionist: 'No Access', librarian: 'Full Control & Issues', teacher_mobile: 'Borrow Books', parent_mobile: 'View Borrows' }
+    ];
+
+    const INITIAL_DATA = {
+      theme: 'navy',
+      currentPlatform: 'web',
+      currentRole: null,
+      activeTab: 'dashboard',
+      isSidebarCollapsed: false,
+      activeChildId: 'stu-101',
+      showRbacModal: false,
+      toast: null,
+      students: [
+        { id: 'stu-101', admissionNo: 'GIS-2022-0142', name: 'Aarav Sharma', standard: 8, section: 'A', rollNo: 1, gender: 'Male', dob: '2012-04-14', bloodGroup: 'O+', parentName: 'Dr. Rajesh Sharma', parentPhone: '+91 98765 43210', attendanceRate: 96, feeStatus: 'paid', house: 'Ruby' },
+        { id: 'stu-102', admissionNo: 'GIS-2024-0089', name: 'Ananya Sharma', standard: 5, section: 'B', rollNo: 4, gender: 'Female', dob: '2015-08-22', bloodGroup: 'O+', parentName: 'Dr. Rajesh Sharma', parentPhone: '+91 98765 43210', attendanceRate: 94, feeStatus: 'pending', house: 'Emerald' },
+        { id: 'stu-103', admissionNo: 'GIS-2022-0155', name: 'Rohan Deshmukh', standard: 8, section: 'A', rollNo: 2, gender: 'Male', dob: '2012-06-11', bloodGroup: 'B+', parentName: 'Sanjay Deshmukh', parentPhone: '+91 98220 11223', attendanceRate: 91, feeStatus: 'paid', house: 'Sapphire' },
+        { id: 'stu-104', admissionNo: 'GIS-2022-0160', name: 'Meera Iyer', standard: 8, section: 'A', rollNo: 3, gender: 'Female', dob: '2012-09-03', bloodGroup: 'A+', parentName: 'Sundaram Iyer', parentPhone: '+91 94441 55667', attendanceRate: 98, feeStatus: 'paid', house: 'Topaz' },
+        { id: 'stu-105', admissionNo: 'GIS-2022-0168', name: 'Kabir Patel', standard: 8, section: 'A', rollNo: 4, gender: 'Male', dob: '2012-02-18', bloodGroup: 'AB+', parentName: 'Hiren Patel', parentPhone: '+91 99099 88776', attendanceRate: 85, feeStatus: 'overdue', house: 'Ruby' },
+        { id: 'stu-106', admissionNo: 'GIS-2021-0091', name: 'Dia Fernandez', standard: 9, section: 'B', rollNo: 12, gender: 'Female', dob: '2011-11-29', bloodGroup: 'O-', parentName: 'Dominic Fernandez', parentPhone: '+91 98200 44556', attendanceRate: 92, feeStatus: 'paid', house: 'Emerald' },
+        { id: 'stu-107', admissionNo: 'GIS-2020-0044', name: 'Aditya Singhania', standard: 10, section: 'A', rollNo: 7, gender: 'Male', dob: '2010-07-05', bloodGroup: 'B-', parentName: 'Vikram Singhania', parentPhone: '+91 98111 22334', attendanceRate: 95, feeStatus: 'paid', house: 'Topaz' },
+        { id: 'stu-108', admissionNo: 'GIS-2025-0210', name: 'Tanvi Joshi', standard: 1, section: 'A', rollNo: 15, gender: 'Female', dob: '2019-10-10', bloodGroup: 'A+', parentName: 'Nitin Joshi', parentPhone: '+91 97660 33441', attendanceRate: 97, feeStatus: 'paid', house: 'Sapphire' }
+      ],
+      teachers: [
+        { id: 'tch-01', empId: 'TCH-2016-042', name: 'Mrs. Shalini Verma', designation: 'Senior Faculty', department: 'Mathematics', qualification: 'M.Sc., B.Ed.', experience: '12 Years', phone: '+91 98221 44550', classes: '8-A, 8-B, 9-B', periodsWeek: 26, leaveBalance: 8 },
+        { id: 'tch-02', empId: 'TCH-2018-067', name: 'Dr. Alok Sen', designation: 'Head of Department', department: 'Science & Physics', qualification: 'Ph.D., M.Sc.', experience: '15 Years', phone: '+91 98112 55660', classes: '9-A, 10-A, 10-B', periodsWeek: 24, leaveBalance: 12 },
+        { id: 'tch-03', empId: 'TCH-2019-089', name: 'Ms. Rebecca D\'Souza', designation: 'Senior Faculty', department: 'English & Literature', qualification: 'M.A., B.Ed.', experience: '9 Years', phone: '+91 98334 66770', classes: '7-A, 8-A, 10-A', periodsWeek: 28, leaveBalance: 6 },
+        { id: 'tch-04', empId: 'TCH-2020-104', name: 'Mr. Arvind Saxena', designation: 'Faculty', department: 'Social Science', qualification: 'M.A. (Hist), B.Ed.', experience: '8 Years', phone: '+91 98445 77880', classes: '6-A, 7-B, 8-A', periodsWeek: 25, leaveBalance: 10 }
+      ],
+      leaves: [
+        { id: 'lv-1', teacherName: 'Ms. Rebecca D\'Souza', dates: '2026-10-16 to 2026-10-17', reason: 'Medical Checkup', type: 'Medical Leave', substitute: 'Mr. Arvind Saxena', status: 'Pending' },
+        { id: 'lv-2', teacherName: 'Mr. Arvind Saxena', dates: '2026-10-02', reason: 'Family Function', type: 'Casual Leave', substitute: 'Mrs. Shalini Verma', status: 'Approved' }
+      ],
+      fees: [
+        { id: 'inv-1', invoiceNo: 'INV-2026-0841', studentId: 'stu-101', studentName: 'Aarav Sharma', standard: 8, section: 'A', amount: 28500, feeType: 'Term 2 Tuition Fee', dueDate: '2026-10-05', status: 'paid', receiptNo: 'RCP-88310', paidDate: '2026-10-04' },
+        { id: 'inv-2', invoiceNo: 'INV-2026-0842', studentId: 'stu-102', studentName: 'Ananya Sharma', standard: 5, section: 'B', amount: 22000, feeType: 'Term 2 Tuition Fee', dueDate: '2026-10-25', status: 'pending' },
+        { id: 'inv-3', invoiceNo: 'INV-2026-0843', studentId: 'stu-105', studentName: 'Kabir Patel', standard: 8, section: 'A', amount: 28500, feeType: 'Term 2 Tuition Fee', dueDate: '2026-09-30', status: 'overdue' },
+        { id: 'inv-4', invoiceNo: 'INV-2026-0844', studentId: 'stu-106', studentName: 'Dia Fernandez', standard: 9, section: 'B', amount: 31000, feeType: 'Term 2 Tuition & Lab Fee', dueDate: '2026-10-08', status: 'paid', receiptNo: 'RCP-88311', paidDate: '2026-10-06' }
+      ],
+      feeStructure: [
+        { standard: 'Standards 1 to 4', tuition: 18000, computer: 2000, activity: 2500, total: 22500 },
+        { standard: 'Standards 5 to 7', tuition: 22000, computer: 2500, activity: 3000, total: 27500 },
+        { standard: 'Standards 8 to 10', tuition: 28500, computer: 3000, lab: 4000, total: 35500 }
+      ],
+      visitors: [
+        { id: 'vis-1', passNo: 'VP-2026-102', name: 'Mr. Rajesh Mehra', phone: '+91 98221 88990', purpose: 'Std 6 Admission Enquiry', meetingWith: 'Admissions Desk', checkIn: '09:45 AM', status: 'inside' },
+        { id: 'vis-2', passNo: 'VP-2026-101', name: 'Mrs. Sunita Roy', phone: '+91 98440 22331', purpose: 'Parent-Teacher Meeting', meetingWith: 'Mrs. Shalini Verma', checkIn: '09:00 AM', checkOut: '09:40 AM', status: 'completed' },
+        { id: 'vis-3', passNo: 'VP-2026-103', name: 'Inspector D. Shinde', phone: '+91 98110 55442', purpose: 'Campus Safety Audit', meetingWith: 'Principal', checkIn: '10:15 AM', status: 'inside' }
+      ],
+      enquiries: [
+        { id: 'enq-1', candidateName: 'Kabir Sengupta', standard: 6, parentName: 'Somen Sengupta', phone: '+91 98310 99881', date: '2026-10-12', status: 'Entrance Scheduled', notes: 'Transfer from Kolkata CBSE school' },
+        { id: 'enq-2', candidateName: 'Rhea Nambiar', standard: 1, parentName: 'Girish Nambiar', phone: '+91 98450 77662', date: '2026-10-13', status: 'Admitted', notes: 'Documents verified and admission fee cleared' },
+        { id: 'enq-3', candidateName: 'Aryan Bhatia', standard: 8, parentName: 'Sunil Bhatia', phone: '+91 98199 44332', date: '2026-10-14', status: 'New Enquiry', notes: 'Interested in sports scholarship wing' }
+      ],
+      books: [
+        { id: 'bk-1', bookId: 'GIS-LIB-0104', title: 'A Brief History of Time', author: 'Stephen Hawking', category: 'Science & Cosmology', isbn: '978-0553380163', total: 6, available: 4, rack: 'Shelf S-04' },
+        { id: 'bk-2', bookId: 'GIS-LIB-0219', title: 'The Discovery of India', author: 'Jawaharlal Nehru', category: 'History & Heritage', isbn: '978-0195623598', total: 8, available: 5, rack: 'Shelf H-02' },
+        { id: 'bk-3', bookId: 'GIS-LIB-0345', title: 'To Kill a Mockingbird', author: 'Harper Lee', category: 'Classic Literature', isbn: '978-0060935467', total: 10, available: 7, rack: 'Shelf L-01' },
+        { id: 'bk-4', bookId: 'GIS-LIB-0482', title: 'Calculus and Analytic Geometry', author: 'George B. Thomas', category: 'Mathematics', isbn: '978-8177583250', total: 12, available: 11, rack: 'Shelf M-05' }
+      ],
+      bookIssues: [
+        { id: 'iss-1', issueNo: 'ISS-2026-0312', bookTitle: 'A Brief History of Time', memberName: 'Aarav Sharma (Std 8-A)', dueDate: '2026-10-15', status: 'borrowed', issueDate: '2026-10-01' },
+        { id: 'iss-2', issueNo: 'ISS-2026-0275', bookTitle: 'To Kill a Mockingbird', memberName: 'Kabir Patel (Std 8-A)', dueDate: '2026-09-29', status: 'overdue', issueDate: '2026-09-15', fineDays: 15, fineAmount: 75 }
+      ],
+      marks: [
+        { id: 'm-1', studentName: 'Aarav Sharma', studentId: 'stu-101', standard: 8, section: 'A', subject: 'Mathematics', score: 94, maxScore: 100, exam: 'Mid-Term Exam', grade: 'A1', remarks: 'Outstanding logical reasoning', endorsed: true },
+        { id: 'm-2', studentName: 'Aarav Sharma', studentId: 'stu-101', standard: 8, section: 'A', subject: 'Science', score: 91, maxScore: 100, exam: 'Mid-Term Exam', grade: 'A1', remarks: 'Excellent lab demonstration', endorsed: true },
+        { id: 'm-3', studentName: 'Aarav Sharma', studentId: 'stu-101', standard: 8, section: 'A', subject: 'English', score: 88, maxScore: 100, exam: 'Mid-Term Exam', grade: 'A2', remarks: 'Good essays and vocabulary', endorsed: false },
+        { id: 'm-4', studentName: 'Ananya Sharma', studentId: 'stu-102', standard: 5, section: 'B', subject: 'Mathematics', score: 92, maxScore: 100, exam: 'Mid-Term Exam', grade: 'A1', remarks: 'Quick mental math mastery', endorsed: true },
+        { id: 'm-5', studentName: 'Rohan Deshmukh', studentId: 'stu-103', standard: 8, section: 'A', subject: 'Mathematics', score: 85, maxScore: 100, exam: 'Mid-Term Exam', grade: 'A2', remarks: 'Consistent practice visible', endorsed: false }
+      ],
+      assignments: [
+        { id: 'asg-1', title: 'Linear Equations in Two Variables (Ex 3.4)', standard: 8, section: 'A', subject: 'Mathematics', teacher: 'Mrs. Shalini Verma', dueDate: '2026-10-18', submissions: 28, total: 30, desc: 'Complete questions 1 to 15 from NCERT Chapter 3 with detailed graphical proofs.' },
+        { id: 'asg-2', title: 'Photosynthesis & Cellular Respiration Lab Report', standard: 8, section: 'A', subject: 'Science', teacher: 'Dr. Alok Sen', dueDate: '2026-10-20', submissions: 22, total: 30, desc: 'Draw well-labeled diagram of chloroplast structure and state limiting factors.' },
+        { id: 'asg-3', title: 'Shakespearean Sonnet 18 Literary Analysis', standard: 8, section: 'A', subject: 'English', teacher: 'Ms. Rebecca D\'Souza', dueDate: '2026-10-19', submissions: 25, total: 30, desc: 'Write a 300-word critical appreciation highlighting meter and metaphorical tone.' }
+      ],
+      notices: [
+        { id: 'not-1', title: 'Term 2 Mid-Term Examination Scorecard Release', date: '2026-10-12', priority: 'High', category: 'Academic', content: 'Consolidated report cards are now endorsed and published for Classes 1 to 10.' },
+        { id: 'not-2', title: 'Annual Inter-House Athletics & Sports Meet 2026', date: '2026-10-10', priority: 'Normal', category: 'Campus Event', content: 'Track and field trials commence on October 22nd at the Greenfield Sports Complex.' },
+        { id: 'not-3', title: 'Diwali Festive Break Schedule Announcement', date: '2026-10-08', priority: 'Normal', category: 'General', content: 'Campus will remain closed from October 30th through November 4th for Diwali holidays.' }
+      ],
+      messages: [
+        { id: 'msg-1', sender: 'Dr. Rajesh Sharma (Parent)', recipient: 'Mrs. Shalini Verma', text: 'Good evening Mrs. Verma, thank you for Aarav\'s mid-term mathematics report. He really enjoys algebra.', time: '16:30', isParent: true },
+        { id: 'msg-2', sender: 'Mrs. Shalini Verma (Teacher)', recipient: 'Dr. Rajesh Sharma', text: 'Hello Dr. Sharma! Aarav performed exceptionally well (94/100). He is also helping peer study groups.', time: '17:15', isParent: false }
+      ]
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(INITIAL_DATA));
+      } catch (e) {
+        return JSON.parse(JSON.stringify(INITIAL_DATA));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn(e);
+      }
+      render();
+    }
+
+    function resetData() {
+      state = JSON.parse(JSON.stringify(INITIAL_DATA));
+      saveState();
+      showToast('Demo data reset to Greenfield seed records.');
+    }
+
+    function showToast(msg) {
+      state.toast = msg;
+      render();
+      setTimeout(() => {
+        state.toast = null;
+        render();
+      }, 3000);
+    }
+
+    function getTheme() {
+      return THEMES[state.theme] || THEMES.navy;
+    }
+
+    function getActiveRole() {
+      return ROLES.find(r => r.id === state.currentRole) || null;
+    }
+
+    // Role Navigation Maps
+    function getRoleTabs(roleId) {
+      switch (roleId) {
+        case 'principal':
+          return [
+            { id: 'dashboard', label: 'Executive Dashboard', icon: '📊' },
+            { id: 'students', label: 'Student Directory', icon: '🎓' },
+            { id: 'teachers', label: 'Teachers & Staff HR', icon: '👥' },
+            { id: 'classes', label: 'Classes & Academics', icon: '📖' },
+            { id: 'timetable', label: 'Timetable Master', icon: '🗓️' },
+            { id: 'exams', label: 'Exams & Schedules', icon: '🏆' },
+            { id: 'assignments', label: 'Assignments Monitor', icon: '📝' },
+            { id: 'notices', label: 'Notices & Circulars', icon: '🔔' },
+            { id: 'events', label: 'Campus Events', icon: '🎪' },
+            { id: 'finance', label: 'Finance & Bursar', icon: '💰' },
+            { id: 'reports', label: 'Institutional Reports', icon: '📑' },
+            { id: 'settings', label: 'School Settings & RBAC', icon: '⚙️' }
+          ];
+        case 'vice_principal':
+          return [
+            { id: 'dashboard', label: 'Academic Dashboard', icon: '📊' },
+            { id: 'coordination', label: 'Class & Teacher Pacing', icon: '👥' },
+            { id: 'substitutions', label: 'Leaves & Substitutions', icon: '🔄' },
+            { id: 'subjects', label: 'Subject Management', icon: '📖' },
+            { id: 'attendance', label: 'Attendance Monitoring', icon: '✅' },
+            { id: 'marks', label: 'Exams & Mark Moderation', icon: '🏆' },
+            { id: 'assignments', label: 'Assignment Monitoring', icon: '📝' },
+            { id: 'timetable', label: 'Timetable Coordination', icon: '🗓️' },
+            { id: 'reports', label: 'Academic Reports & Circulars', icon: '📑' }
+          ];
+        case 'teacher_web':
+          return [
+            { id: 'dashboard', label: 'Teacher Home', icon: '📊' },
+            { id: 'classes', label: 'My Classes (8-A, 8-B, 9-B)', icon: '📖' },
+            { id: 'students', label: 'Student Profiles', icon: '🎓' },
+            { id: 'attendance', label: 'Daily Roll-Call', icon: '✅' },
+            { id: 'marks', label: 'Marks & Gradebook', icon: '🏆' },
+            { id: 'assignments', label: 'Homework & Assignments', icon: '📝' },
+            { id: 'timetable', label: 'Weekly Timetable', icon: '🗓️' },
+            { id: 'exams', label: 'Exam Duties & Schedules', icon: '📋' },
+            { id: 'notices', label: 'Staff Circulars', icon: '🔔' },
+            { id: 'messages', label: 'Parent Messages', icon: '💬' }
+          ];
+        case 'accountant':
+          return [
+            { id: 'dashboard', label: 'Finance Dashboard', icon: '📊' },
+            { id: 'students', label: 'Students & Fees Roster', icon: '🎓' },
+            { id: 'structure', label: 'Approved Fee Structure', icon: '💵' },
+            { id: 'collections', label: 'Collections Ledger', icon: '💳' },
+            { id: 'pending_overdue', label: 'Pending & Overdue Dues', icon: '⚠️' },
+            { id: 'receipts', label: 'Official Receipts', icon: '🧾' },
+            { id: 'history', label: 'Payment History Audit', icon: '🕒' },
+            { id: 'reports', label: 'Bursar Financial Reports', icon: '📑' }
+          ];
+        case 'receptionist':
+          return [
+            { id: 'dashboard', label: 'Front Office Home', icon: '📊' },
+            { id: 'enquiries', label: 'Admission Enquiries CRM', icon: '📞' },
+            { id: 'admissions', label: 'Direct Admissions Desk', icon: '📝' },
+            { id: 'visitors', label: 'Visitor Passes & Log', icon: '🪪' },
+            { id: 'appointments', label: 'Appointments Calendar', icon: '🗓️' },
+            { id: 'directory', label: 'Student Emergency Directory', icon: '👥' },
+            { id: 'parents', label: 'Parent Contacts Directory', icon: '📱' },
+            { id: 'notices', label: 'Front Desk Notices', icon: '🔔' }
+          ];
+        case 'librarian':
+          return [
+            { id: 'dashboard', label: 'Circulation Desk', icon: '📊' },
+            { id: 'books', label: 'Books Repository', icon: '📚' },
+            { id: 'members', label: 'Library Cards & Members', icon: '🪪' },
+            { id: 'circulation', label: 'Issue & Return Terminal', icon: '🔄' },
+            { id: 'due_books', label: 'Due Books Tracker', icon: '⏰' },
+            { id: 'fines', label: 'Overdue Fines Ledger', icon: '💰' },
+            { id: 'reports', label: 'Circulation Reports', icon: '📑' }
+          ];
+        case 'teacher_mobile':
+          return [
+            { id: 'home', label: 'Home', icon: '🏠' },
+            { id: 'classes', label: 'Classes', icon: '📖' },
+            { id: 'attendance', label: 'Roll Call', icon: '✅' },
+            { id: 'marks', label: 'Marks', icon: '🏆' },
+            { id: 'assignments', label: 'Homework', icon: '📝' },
+            { id: 'timetable', label: 'Schedule', icon: '🗓️' },
+            { id: 'profile', label: 'Profile', icon: '👤' }
+          ];
+        case 'parent_mobile':
+          return [
+            { id: 'home', label: 'Home', icon: '🏠' },
+            { id: 'academics', label: 'Report Card', icon: '🏆' },
+            { id: 'attendance', label: 'Attendance', icon: '📅' },
+            { id: 'assignments', label: 'Homework', icon: '📝' },
+            { id: 'fees', label: 'Fees & Pay', icon: '💳' },
+            { id: 'chat', label: 'Teacher Chat', icon: '💬' },
+            { id: 'profile', label: 'Profile', icon: '👤' }
+          ];
+        default:
+          return [{ id: 'dashboard', label: 'Dashboard', icon: '📊' }];
+      }
+    }
+
+    // Main App Renderer
+    function render() {
+      const app = document.getElementById('app');
+      if (!state.currentRole) {
+        app.innerHTML = renderRoleSelector();
+      } else if (state.currentRole === 'teacher_mobile' || state.currentRole === 'parent_mobile') {
+        app.innerHTML = renderMobileView();
+      } else {
+        app.innerHTML = renderWebView();
+      }
+    }
+
+    // View: Role Selector Hub
+    function renderRoleSelector() {
+      const theme = getTheme();
+      const filtered = ROLES.filter(r => r.platform === state.currentPlatform);
+
+      return `
+        <div class="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between">
+          <header class="border-b border-slate-800 bg-slate-950/80 px-6 py-4 flex items-center justify-between sticky top-0 z-30 backdrop-blur">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-md font-mono text-sm" style="background-color: ${theme.hex}">
+                GIS
+              </div>
+              <div>
+                <div class="font-extrabold text-base text-white tracking-tight flex items-center gap-2">
+                  EDUCORE <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-normal">CBSE Affiliation #2130042</span>
+                </div>
+                <div class="text-xs text-slate-400">Greenfield International School · Standards 1 to 10 Academic Suite</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="state.showRbacModal=true; render();" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 hover:bg-emerald-900 transition flex items-center gap-1.5">
+                <span>🛡️ Role Permissions & RBAC Matrix</span>
+              </button>
+              <button onclick="resetData()" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-slate-300 transition">
+                Reset Demo Data
+              </button>
+            </div>
+          </header>
+
+          <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-1">
+            <div class="text-center max-w-2xl mx-auto mb-8">
+              <div class="inline-flex items-center gap-1.5 text-[11px] font-mono px-3 py-1 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/80 mb-3">
+                <span>⚡ Real Multi-Role School Management Frontend</span>
+              </div>
+              <h1 class="text-3xl font-extrabold text-white tracking-tight">Select Role Experience & Security Portal</h1>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                7 Unique Roles · 8 Total Experiences · Rigorous Role-Based Access Control (RBAC) · Complete Standards 1 to 10 Academic & Financial Workflows
+              </p>
+            </div>
+
+            <!-- Platform & Theme Configuration Toolbar -->
+            <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Select Platform:</span>
+                <div class="bg-slate-900 p-1 rounded-xl border border-slate-800 flex gap-1">
+                  <button onclick="state.currentPlatform='web'; saveState();" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${state.currentPlatform === 'web' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                    🖥️ Web Platform (6 Roles)
+                  </button>
+                  <button onclick="state.currentPlatform='mobile'; saveState();" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${state.currentPlatform === 'mobile' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                    📱 Mobile App (2 Role Experiences)
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Theme Accent:</span>
+                <div class="flex items-center gap-2">
+                  ${Object.keys(THEMES).map(k => `
+                    <button onclick="state.theme='${k}'; saveState();" class="w-6 h-6 rounded-full border-2 transition-transform ${state.theme === k ? 'border-white scale-125 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100'}" style="background-color: ${THEMES[k].hex}" title="${THEMES[k].name}"></button>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Role Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              ${filtered.map(r => `
+                <div class="bg-slate-950/80 border border-slate-800 hover:border-slate-700 p-5 rounded-2xl flex flex-col justify-between transition-all hover:-translate-y-1 shadow-lg hover:shadow-2xl">
+                  <div>
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                      <h3 class="text-base font-bold text-white">${r.title}</h3>
+                      <span class="text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold shrink-0 bg-slate-800 text-slate-300">
+                        ${r.platform}
+                      </span>
+                    </div>
+                    <div class="inline-block text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-emerald-400 font-semibold mb-3">
+                      🛡️ ${r.clearance}
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">${r.desc}</p>
+                  </div>
+
+                  <div class="pt-4 border-t border-slate-900 mt-5 flex items-center justify-between">
+                    <div>
+                      <div class="text-xs font-bold text-slate-200">${r.user}</div>
+                      <div class="text-[10px] text-slate-500">${r.designation}</div>
+                    </div>
+                    <button onclick="selectRole('${r.id}')" class="px-3.5 py-1.5 text-xs font-semibold text-white rounded-xl shadow-md transition" style="background-color: ${theme.hex}">
+                      Enter Portal &rarr;
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </main>
+
+          <footer class="border-t border-slate-800 bg-slate-950/80 px-6 py-4 text-center text-xs text-slate-500">
+            Greenfield International School (GIS) · Academic Year 2026–2027 · Term 2 · CBSE Comprehensive School Management
+          </footer>
+
+          ${state.showRbacModal ? renderRbacModal() : ''}
+          ${state.toast ? renderToast(state.toast) : ''}
+        </div>
+      `;
+    }
+
+    function selectRole(roleId) {
+      state.currentRole = roleId;
+      state.activeTab = (roleId === 'teacher_mobile' || roleId === 'parent_mobile') ? 'home' : 'dashboard';
+      saveState();
+    }
+
+    // View: Web Platform Portal
+    function renderWebView() {
+      const theme = getTheme();
+      const role = getActiveRole();
+      const tabs = getRoleTabs(role.id);
+
+      return `
+        <div class="min-h-screen bg-slate-100 flex flex-row text-slate-800 antialiased">
+          <!-- ChatGPT-Style Collapsible Sidebar -->
+          <aside class="bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between shrink-0 transition-all duration-300 sticky top-0 h-screen z-30 ${state.isSidebarCollapsed ? 'w-18' : 'w-64'}">
+            <div>
+              <!-- Sidebar Header -->
+              <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3 overflow-hidden ${state.isSidebarCollapsed ? 'justify-center w-full' : ''}">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white shrink-0 shadow-md font-mono text-sm" style="background-color: ${theme.hex}">
+                    GIS
+                  </div>
+                  ${!state.isSidebarCollapsed ? `
+                    <div class="truncate">
+                      <div class="font-extrabold text-sm text-white flex items-center gap-1">
+                        EDUCORE <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-300">v3.2</span>
+                      </div>
+                      <div class="text-[11px] text-slate-400 truncate">Greenfield Int. School</div>
+                    </div>
+                  ` : ''}
+                </div>
+
+                ${!state.isSidebarCollapsed ? `
+                  <button onclick="state.isSidebarCollapsed=true; render();" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Collapse sidebar">
+                    ◀
+                  </button>
+                ` : ''}
+              </div>
+
+              ${state.isSidebarCollapsed ? `
+                <div class="py-2 flex justify-center border-b border-slate-800">
+                  <button onclick="state.isSidebarCollapsed=false; render();" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Expand sidebar">
+                    ▶
+                  </button>
+                </div>
+              ` : ''}
+
+              <!-- Active Role Badge -->
+              ${!state.isSidebarCollapsed ? `
+                <div class="px-4 py-3 mx-2 my-2 rounded-xl bg-slate-950/70 border border-slate-800/80">
+                  <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Active Portal:</div>
+                  <div class="text-xs font-bold text-white truncate mt-0.5">${role.title}</div>
+                  <div class="text-[11px] text-slate-400 truncate">${role.user} · ${role.designation}</div>
+                  <div class="mt-1 text-[10px] font-mono text-emerald-400">🛡️ ${role.clearance}</div>
+                </div>
+              ` : `
+                <div class="py-2 text-center" title="${role.title} (${role.user})">
+                  <span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: ${theme.hex}"></span>
+                </div>
+              `}
+
+              <!-- Navigation Menu -->
+              <nav class="p-2 space-y-1 overflow-y-auto max-h-[calc(100vh-250px)]">
+                ${tabs.map(item => {
+                  const isActive = state.activeTab === item.id;
+                  return `
+                    <button
+                      onclick="state.activeTab='${item.id}'; saveState();"
+                      title="${state.isSidebarCollapsed ? item.label : ''}"
+                      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all relative ${
+                        isActive ? 'text-white shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      }"
+                      style="${isActive ? `background-color: ${theme.hex}` : ''}"
+                    >
+                      <span class="text-sm shrink-0">${item.icon}</span>
+                      ${!state.isSidebarCollapsed ? `<span class="truncate">${item.label}</span>` : ''}
+                      ${isActive && !state.isSidebarCollapsed ? '<span class="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </nav>
+            </div>
+
+            <!-- Sidebar Bottom Actions -->
+            <div class="p-2 border-t border-slate-800 space-y-1">
+              <button onclick="state.showRbacModal=true; render();" title="Inspect Role Permissions" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-emerald-400 hover:bg-slate-800 transition">
+                <span>🛡️</span>
+                ${!state.isSidebarCollapsed ? '<span>RBAC Matrix</span>' : ''}
+              </button>
+              <button onclick="state.currentRole=null; saveState();" title="Switch Role Experience" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                <span>🔄</span>
+                ${!state.isSidebarCollapsed ? '<span>Switch Role</span>' : ''}
+              </button>
+              <button onclick="resetData()" title="Reset Demo Records" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-amber-400 hover:bg-slate-800 transition">
+                <span>⚡</span>
+                ${!state.isSidebarCollapsed ? '<span>Reset Data</span>' : ''}
+              </button>
+            </div>
+          </aside>
+
+          <!-- Main Content Area -->
+          <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Sticky Header -->
+            <header class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-slate-200 px-6 py-3 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-2 text-xs truncate">
+                <span class="font-bold text-slate-900">EduCore</span>
+                <span class="text-slate-400">/</span>
+                <span class="font-semibold text-slate-700">${role.title.split('/')[0].trim()}</span>
+                <span class="text-slate-400">/</span>
+                <span class="text-slate-500 capitalize">${state.activeTab.replace(/_/g, ' ')}</span>
+                <span class="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-800 ml-2 font-semibold">
+                  🛡️ ${role.clearance}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="state.showRbacModal=true; render();" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition">
+                  🛡️ Role Permissions
+                </button>
+                <button onclick="state.currentRole=null; saveState();" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm">
+                  Role Hub
+                </button>
+              </div>
+            </header>
+
+            <!-- RBAC Security & Authorization Scope Banner -->
+            <section class="bg-white border-b border-slate-200 px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-slate-900">🛡️ Active Role Clearance:</span>
+                <span class="px-2 py-0.5 rounded font-mono font-semibold bg-slate-100 text-slate-800">${role.clearance}</span>
+                <span class="text-slate-400 hidden sm:inline">|</span>
+                <span class="text-slate-600 text-[11px]">${role.desc}</span>
+              </div>
+              <button onclick="state.showRbacModal=true; render();" class="text-blue-700 hover:underline font-semibold text-[11px] shrink-0">
+                Inspect Complete Matrix &rarr;
+              </button>
+            </section>
+
+            <!-- Main View Tab Content -->
+            <main class="p-6 flex-1 space-y-6">
+              ${renderWebTabContent(role.id, state.activeTab)}
+            </main>
+          </div>
+
+          ${state.showRbacModal ? renderRbacModal() : ''}
+          ${state.toast ? renderToast(state.toast) : ''}
+        </div>
+      `;
+    }
+
+    // Role View Tab Dispatcher
+    function renderWebTabContent(roleId, tab) {
+      const theme = getTheme();
+
+      // Common Dashboards or Role Views
+      if (tab === 'dashboard') {
+        return renderRoleDashboard(roleId);
+      }
+
+      // Principal Tabs
+      if (roleId === 'principal') {
+        if (tab === 'students') return renderPrincipalStudents();
+        if (tab === 'teachers') return renderPrincipalTeachers();
+        if (tab === 'classes') return renderPrincipalClasses();
+        if (tab === 'timetable') return renderTimetableMaster();
+        if (tab === 'exams') return renderExamsMaster();
+        if (tab === 'assignments') return renderAssignmentsMonitor();
+        if (tab === 'notices') return renderNoticesManager();
+        if (tab === 'events') return renderEventsManager();
+        if (tab === 'finance') return renderFinanceOverview();
+        if (tab === 'reports') return renderInstitutionalReports();
+        if (tab === 'settings') return renderSchoolSettings();
+      }
+
+      // Vice Principal Tabs
+      if (roleId === 'vice_principal') {
+        if (tab === 'coordination') return renderVicePrincipalCoordination();
+        if (tab === 'substitutions') return renderLeavesSubstitutions();
+        if (tab === 'subjects') return renderSubjectManagement();
+        if (tab === 'attendance') return renderAttendanceMonitor();
+        if (tab === 'marks') return renderMarksModeration();
+        if (tab === 'assignments') return renderAssignmentsMonitor();
+        if (tab === 'timetable') return renderTimetableMaster();
+        if (tab === 'reports') return renderInstitutionalReports();
+      }
+
+      // Teacher Web Tabs
+      if (roleId === 'teacher_web') {
+        if (tab === 'classes') return renderTeacherClasses();
+        if (tab === 'students') return renderTeacherStudents();
+        if (tab === 'attendance') return renderDailyRollCall();
+        if (tab === 'marks') return renderTeacherGradebook();
+        if (tab === 'assignments') return renderTeacherAssignments();
+        if (tab === 'timetable') return renderTeacherTimetable();
+        if (tab === 'exams') return renderExamsMaster();
+        if (tab === 'notices') return renderNoticesManager();
+        if (tab === 'messages') return renderParentMessages();
+      }
+
+      // Accountant Tabs
+      if (roleId === 'accountant') {
+        if (tab === 'students') return renderAccountantStudents();
+        if (tab === 'structure') return renderFeeStructure();
+        if (tab === 'collections') return renderCollectionsLedger();
+        if (tab === 'pending_overdue') return renderPendingOverdue();
+        if (tab === 'receipts') return renderReceipts();
+        if (tab === 'history') return renderPaymentHistory();
+        if (tab === 'reports') return renderFinancialReports();
+      }
+
+      // Receptionist Tabs
+      if (roleId === 'receptionist') {
+        if (tab === 'enquiries') return renderEnquiriesCRM();
+        if (tab === 'admissions') return renderDirectAdmissions();
+        if (tab === 'visitors') return renderVisitorPasses();
+        if (tab === 'appointments') return renderAppointmentsCalendar();
+        if (tab === 'directory') return renderStudentDirectory();
+        if (tab === 'parents') return renderParentDirectory();
+        if (tab === 'notices') return renderNoticesManager();
+      }
+
+      // Librarian Tabs
+      if (roleId === 'librarian') {
+        if (tab === 'books') return renderBooksRepository();
+        if (tab === 'members') return renderLibraryMembers();
+        if (tab === 'circulation') return renderCirculationTerminal();
+        if (tab === 'due_books') return renderDueBooksTracker();
+        if (tab === 'fines') return renderOverdueFines();
+        if (tab === 'reports') return renderCirculationReports();
+      }
+
+      return `<div class="p-8 text-center text-slate-500">Module ${tab} loaded with active RBAC validation.</div>`;
+    }
+
+    // Role-specific Dashboards
+    function renderRoleDashboard(roleId) {
+      const theme = getTheme();
+      const totalStudents = state.students.length;
+      const totalFaculty = state.teachers.length;
+      const totalFeesCollected = state.fees.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
+      const totalOverdue = state.fees.filter(f => f.status === 'overdue').reduce((s, f) => s + f.amount, 0);
+
+      return `
+        <div class="space-y-6">
+          <!-- KPI Metrics Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Enrolled Students</span>
+                <h3 class="text-2xl font-bold text-slate-900 mt-1">${totalStudents}</h3>
+                <span class="text-xs text-emerald-600 font-medium">Standards 1 to 10 Active</span>
+              </div>
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl" style="background-color: ${theme.hex}15; color: ${theme.hex}">
+                🎓
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Faculty</span>
+                <h3 class="text-2xl font-bold text-slate-900 mt-1">${totalFaculty}</h3>
+                <span class="text-xs text-blue-600 font-medium">100% On-Campus Today</span>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-xl">
+                👥
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Attendance Rate</span>
+                <h3 class="text-2xl font-bold text-slate-900 mt-1">94.8%</h3>
+                <span class="text-xs text-emerald-600 font-medium">CBSE Health: Excellent</span>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl">
+                ✅
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Term 2 Collections</span>
+                <h3 class="text-2xl font-bold text-slate-900 mt-1 font-mono">₹${totalFeesCollected.toLocaleString()}</h3>
+                <span class="text-xs text-amber-600 font-medium font-mono">₹${totalOverdue.toLocaleString()} Overdue</span>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
+                💰
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Bar -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+            <span class="text-xs font-bold text-slate-700">Quick Administrator Shortcuts:</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="promptAddStudent()" class="px-3 py-1.5 text-xs font-semibold text-white rounded-xl shadow-sm transition" style="background-color: ${theme.hex}">
+                + Enroll Student
+              </button>
+              <button onclick="promptAddNotice()" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition">
+                + Broadcast Circular
+              </button>
+              <button onclick="state.activeTab='attendance'; render();" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition">
+                📋 Daily Attendance
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Circulars & Recent Activities -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="text-sm font-bold text-slate-900 flex items-center justify-between">
+                <span>Campus Circulars & Official Notices</span>
+                <span class="text-xs font-normal text-slate-400">Greenfield Desk</span>
+              </h4>
+              <div class="space-y-2">
+                ${state.notices.map(n => `
+                  <div class="p-3 rounded-xl border border-slate-100 bg-slate-50 flex items-start justify-between gap-2">
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] px-1.5 py-0.2 rounded font-semibold uppercase ${n.priority === 'High' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}">${n.priority}</span>
+                        <strong class="text-xs text-slate-900">${n.title}</strong>
+                      </div>
+                      <p class="text-xs text-slate-600 mt-1">${n.content}</p>
+                      <span class="text-[10px] text-slate-400 font-mono mt-1 block">Published: ${n.date}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="text-sm font-bold text-slate-900 flex items-center justify-between">
+                <span>Class Pacing & Curriculum Tracks</span>
+                <span class="text-xs font-normal text-slate-400">CBSE Std 1–10</span>
+              </h4>
+              <div class="space-y-3 text-xs">
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                  <div class="flex justify-between font-semibold text-slate-800">
+                    <span>Std 8-A · Mathematics (Algebra)</span>
+                    <span class="text-emerald-700">82% Covered</span>
+                  </div>
+                  <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-600 rounded-full" style="width: 82%"></div>
+                  </div>
+                  <div class="text-[10px] text-slate-500">Instructor: Mrs. Shalini Verma · 5 periods/week</div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                  <div class="flex justify-between font-semibold text-slate-800">
+                    <span>Std 9-A · Science (Physics & Chemistry)</span>
+                    <span class="text-blue-700">75% Covered</span>
+                  </div>
+                  <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-600 rounded-full" style="width: 75%"></div>
+                  </div>
+                  <div class="text-[10px] text-slate-500">Instructor: Dr. Alok Sen · 6 periods/week</div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                  <div class="flex justify-between font-semibold text-slate-800">
+                    <span>Std 10-A · English Literature</span>
+                    <span class="text-indigo-700">88% Covered</span>
+                  </div>
+                  <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-600 rounded-full" style="width: 88%"></div>
+                  </div>
+                  <div class="text-[10px] text-slate-500">Instructor: Ms. Rebecca D'Souza · 5 periods/week</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Principal: Students Tab
+    function renderPrincipalStudents() {
+      const theme = getTheme();
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Enrolled Student Roster (Standards 1 to 10)</h3>
+              <p class="text-xs text-slate-500">Complete student dossiers, parent contact records, attendance health and fee clearance</p>
+            </div>
+            <button onclick="promptAddStudent()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm transition" style="background-color: ${theme.hex}">
+              + Add Student
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Admission No</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Std / Sec</th>
+                  <th class="py-2.5 px-3">Parent Contact</th>
+                  <th class="py-2.5 px-3">Blood Grp</th>
+                  <th class="py-2.5 px-3">House</th>
+                  <th class="py-2.5 px-3">Attendance</th>
+                  <th class="py-2.5 px-3">Fee Status</th>
+                  <th class="py-2.5 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${state.students.map(s => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-900">${s.admissionNo}</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-900">${s.name}</td>
+                    <td class="py-2.5 px-3 font-mono">Std ${s.standard}-${s.section} (#${s.rollNo})</td>
+                    <td class="py-2.5 px-3">${s.parentName}<br><span class="text-slate-400 font-mono text-[11px]">${s.parentPhone}</span></td>
+                    <td class="py-2.5 px-3 font-mono font-semibold">${s.bloodGroup || 'O+'}</td>
+                    <td class="py-2.5 px-3 font-semibold">${s.house || 'Ruby'}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold ${s.attendanceRate >= 90 ? 'text-emerald-700' : 'text-amber-700'}">${s.attendanceRate}%</td>
+                    <td class="py-2.5 px-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${s.feeStatus === 'paid' ? 'bg-emerald-50 text-emerald-700' : s.feeStatus === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}">
+                        ${s.feeStatus}
+                      </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right">
+                      <button onclick="deleteStudent('${s.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition">
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function promptAddStudent() {
+      const name = prompt('Enter Student Full Name:');
+      if (!name) return;
+      const std = parseInt(prompt('Enter Standard (1 to 10):', '8')) || 8;
+      const sec = prompt('Enter Section (A or B):', 'A') || 'A';
+      const parent = prompt('Enter Parent/Guardian Name:', 'Dr. Sharma') || 'Guardian';
+      const phone = prompt('Enter Parent Phone Number:', '+91 98765 00000') || '+91 98765 00000';
+
+      const newStu = {
+        id: 'stu-' + Date.now(),
+        admissionNo: 'GIS-2026-0' + (state.students.length + 150),
+        name: name,
+        standard: std,
+        section: sec.toUpperCase(),
+        rollNo: state.students.filter(s => s.standard === std).length + 1,
+        gender: 'Male',
+        bloodGroup: 'B+',
+        parentName: parent,
+        parentPhone: phone,
+        attendanceRate: 98,
+        feeStatus: 'pending',
+        house: 'Topaz'
+      };
+
+      state.students.push(newStu);
+      saveState();
+      showToast(`Student ${name} enrolled into Class ${std}-${sec}.`);
+    }
+
+    function deleteStudent(id) {
+      if (confirm('Are you sure you want to withdraw this student dossier?')) {
+        state.students = state.students.filter(s => s.id !== id);
+        saveState();
+        showToast('Student dossier removed from register.');
+      }
+    }
+
+    // Principal: Teachers Tab
+    function renderPrincipalTeachers() {
+      const theme = getTheme();
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Faculty & Staff HR Registry</h3>
+              <p class="text-xs text-slate-500">Designation, department, class assignments, qualifications and leave balances</p>
+            </div>
+            <button onclick="promptAddTeacher()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm transition" style="background-color: ${theme.hex}">
+              + Add Faculty
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${state.teachers.map(t => `
+              <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-bold text-slate-900 text-sm">${t.name}</h4>
+                    <span class="text-xs text-blue-700 font-medium">${t.designation} · ${t.department}</span>
+                  </div>
+                  <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-200 font-semibold text-slate-800">${t.empId}</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                  <div><span class="text-slate-400 block">Classes Assigned:</span><strong>${t.classes}</strong></div>
+                  <div><span class="text-slate-400 block">Experience:</span><strong>${t.experience}</strong></div>
+                  <div><span class="text-slate-400 block">Qualification:</span><strong>${t.qualification}</strong></div>
+                  <div><span class="text-slate-400 block">Weekly Periods:</span><strong>${t.periodsWeek || 25} periods</strong></div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                  <span class="text-slate-500 font-mono">Contact: ${t.phone}</span>
+                  <span class="text-emerald-700 font-semibold">Leave Balance: ${t.leaveBalance || 10} Days</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function promptAddTeacher() {
+      const name = prompt('Enter Teacher Full Name:');
+      if (!name) return;
+      const dept = prompt('Enter Department (e.g., Mathematics, Science, English):', 'Science') || 'Science';
+      const classes = prompt('Enter Classes Assigned (e.g., 7-A, 8-B):', '8-A, 9-B') || '8-A, 9-B';
+
+      const newTch = {
+        id: 'tch-' + Date.now(),
+        empId: 'TCH-2026-0' + (state.teachers.length + 110),
+        name: name,
+        designation: 'Faculty',
+        department: dept,
+        qualification: 'M.Sc., B.Ed.',
+        experience: '6 Years',
+        phone: '+91 98111 00000',
+        classes: classes,
+        periodsWeek: 25,
+        leaveBalance: 12
+      };
+
+      state.teachers.push(newTch);
+      saveState();
+      showToast(`Faculty ${name} registered in HR database.`);
+    }
+
+    // Classes & Academics Tab
+    function renderPrincipalClasses() {
+      const standards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Academic Standards 1 to 10 Directory</h3>
+            <p class="text-xs text-slate-500">Sections A and B class teachers, student strength, and room allocations</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${standards.map(std => {
+              const count = state.students.filter(s => s.standard === std).length;
+              return `
+                <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                  <div class="flex justify-between items-center">
+                    <h4 class="font-bold text-slate-900 text-sm">Class ${std}</h4>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">2 Sections (A & B)</span>
+                  </div>
+                  <div class="text-xs text-slate-600 space-y-1">
+                    <div class="flex justify-between"><span>Section A:</span><strong>Room ${100 + std}A · 32 Students</strong></div>
+                    <div class="flex justify-between"><span>Section B:</span><strong>Room ${100 + std}B · 30 Students</strong></div>
+                    <div class="flex justify-between text-blue-700"><span>Sample Enrolled:</span><strong>${count} in demo DB</strong></div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Timetable Master Tab
+    function renderTimetableMaster() {
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+      const periods = [
+        { num: 1, time: '08:20 - 09:05', sub: 'Mathematics', teacher: 'Mrs. Verma', room: 'Room 204' },
+        { num: 2, time: '09:05 - 09:50', sub: 'Physics Lab', teacher: 'Dr. Sen', room: 'Physics Lab A' },
+        { num: 'Break', time: '09:50 - 10:05', sub: 'Short Recess', teacher: '—', room: 'Campus Grounds' },
+        { num: 3, time: '10:05 - 10:50', sub: 'English Lit', teacher: 'Ms. D\'Souza', room: 'Room 204' },
+        { num: 4, time: '10:50 - 11:35', sub: 'Social Science', teacher: 'Mr. Saxena', room: 'Room 204' },
+        { num: 'Lunch', time: '11:35 - 12:15', sub: 'Midday Meal & Lunch', teacher: '—', room: 'Refectory' },
+        { num: 5, time: '12:15 - 01:00', sub: 'Computer Science', teacher: 'Mr. Verma', room: 'Computer Lab 2' },
+        { num: 6, time: '01:00 - 01:45', sub: 'Hindi / Sanskrit', teacher: 'Mrs. Joshi', room: 'Room 204' },
+        { num: 7, time: '01:45 - 02:30', sub: 'Physical Education', teacher: 'Coach Rao', room: 'Athletics Ground' }
+      ];
+
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Master Bell Schedule & Weekly Timetable (Class 8-A)</h3>
+              <p class="text-xs text-slate-500">Periods 1 through 7 with teacher assignments and conflict checks</p>
+            </div>
+            <span class="text-xs font-mono px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg font-semibold">
+              ✓ Zero Room/Faculty Conflicts
+            </span>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Period</th>
+                  <th class="py-2.5 px-3">Timing</th>
+                  <th class="py-2.5 px-3">Subject</th>
+                  <th class="py-2.5 px-3">Instructor</th>
+                  <th class="py-2.5 px-3">Venue / Room</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${periods.map(p => `
+                  <tr class="hover:bg-slate-50 ${typeof p.num === 'string' ? 'bg-amber-50/40 font-semibold' : ''}">
+                    <td class="py-2.5 px-3 font-mono font-bold">${typeof p.num === 'number' ? 'Period ' + p.num : p.num}</td>
+                    <td class="py-2.5 px-3 font-mono text-slate-500">${p.time}</td>
+                    <td class="py-2.5 px-3 font-bold text-slate-900">${p.sub}</td>
+                    <td class="py-2.5 px-3">${p.teacher}</td>
+                    <td class="py-2.5 px-3 font-mono">${p.room}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // Exams Master Tab
+    function renderExamsMaster() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">CBSE Examination Schedules & Grading Scale</h3>
+            <p class="text-xs text-slate-500">Term 1, Term 2, and Periodic Assessment structure for Standards 1 to 10</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <div class="flex justify-between items-center">
+                <h4 class="font-bold text-slate-900 text-sm">Term 2 Summative Assessments</h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">Active Term</span>
+              </div>
+              <p class="text-xs text-slate-600">Max Marks: 100 per subject (80 Theory + 20 Internal/Lab Assessment). Passing Criteria: 33% overall.</p>
+              <div class="text-xs font-mono text-slate-500 pt-2 border-t border-slate-200">
+                Schedule: March 02 to March 18, 2027
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <h4 class="font-bold text-slate-900 text-sm">CBSE 9-Point Grading Metric</h4>
+              <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+                <div class="p-2 bg-white rounded border border-slate-200 text-center"><strong>A1</strong>: 91–100</div>
+                <div class="p-2 bg-white rounded border border-slate-200 text-center"><strong>A2</strong>: 81–90</div>
+                <div class="p-2 bg-white rounded border border-slate-200 text-center"><strong>B1</strong>: 71–80</div>
+                <div class="p-2 bg-white rounded border border-slate-200 text-center"><strong>B2</strong>: 61–70</div>
+                <div class="p-2 bg-white rounded border border-slate-200 text-center"><strong>C1</strong>: 51–60</div>
+                <div class="p-2 bg-white rounded border border-slate-200 text-center"><strong>D</strong>: 33–40 (Pass)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Assignments Monitor Tab
+    function renderAssignmentsMonitor() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Campus Assignment & Homework Monitor</h3>
+              <p class="text-xs text-slate-500">Submission rates and homework frequency per academic department</p>
+            </div>
+            <button onclick="promptCreateAssignment()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-blue-700">
+              + New Assignment
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${state.assignments.map(asg => `
+              <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
+                <div class="flex items-start justify-between gap-2">
+                  <h4 class="text-sm font-bold text-slate-900">${asg.title}</h4>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 font-semibold text-slate-800">
+                    Std ${asg.standard}-${asg.section}
+                  </span>
+                </div>
+                <p class="text-xs text-blue-700 font-semibold">${asg.subject} · ${asg.teacher}</p>
+                <p class="text-xs text-slate-600">${asg.desc}</p>
+                <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                  <span class="text-slate-500 font-mono">Due: ${asg.dueDate}</span>
+                  <span class="font-semibold text-emerald-700 font-mono">
+                    ${asg.submissions} / ${asg.total} Submitted (${Math.round((asg.submissions / asg.total) * 100)}%)
+                  </span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function promptCreateAssignment() {
+      const title = prompt('Enter Assignment Title:');
+      if (!title) return;
+      const sub = prompt('Enter Subject (e.g., Mathematics, Science):', 'Mathematics') || 'Mathematics';
+      const due = prompt('Enter Due Date (YYYY-MM-DD):', '2026-10-25') || '2026-10-25';
+      const desc = prompt('Enter Homework Instructions:', 'Complete chapter exercises.') || 'Complete exercises.';
+
+      state.assignments.push({
+        id: 'asg-' + Date.now(),
+        title: title,
+        standard: 8,
+        section: 'A',
+        subject: sub,
+        teacher: 'Mrs. Shalini Verma',
+        dueDate: due,
+        submissions: 0,
+        total: 30,
+        desc: desc
+      });
+
+      saveState();
+      showToast(`Assignment '${title}' broadcasted to Class 8-A.`);
+    }
+
+    // Notices Manager Tab
+    function renderNoticesManager() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">School Notices & Official Circulars</h3>
+              <p class="text-xs text-slate-500">Official memos broadcasted across web portal and mobile app</p>
+            </div>
+            <button onclick="promptAddNotice()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-blue-700">
+              + Post Circular
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            ${state.notices.map(n => `
+              <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] px-2 py-0.5 rounded uppercase font-semibold ${n.priority === 'High' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}">${n.priority}</span>
+                    <strong class="text-sm text-slate-900">${n.title}</strong>
+                  </div>
+                  <p class="text-xs text-slate-600 mt-1">${n.content}</p>
+                  <span class="text-[10px] text-slate-400 font-mono mt-1 block">Date: ${n.date} · Category: ${n.category || 'General'}</span>
+                </div>
+                <button onclick="deleteNotice('${n.id}')" class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 rounded hover:bg-rose-50 self-end sm:self-center">
+                  Delete
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function promptAddNotice() {
+      const title = prompt('Enter Notice Headline:');
+      if (!title) return;
+      const content = prompt('Enter Notice Content / Details:');
+      if (!content) return;
+      const priority = prompt('Priority (High or Normal):', 'Normal') || 'Normal';
+
+      state.notices.unshift({
+        id: 'not-' + Date.now(),
+        title: title,
+        content: content,
+        priority: priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase(),
+        category: 'Official',
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      saveState();
+      showToast('Circular published to campus feeds.');
+    }
+
+    function deleteNotice(id) {
+      if (confirm('Delete this circular?')) {
+        state.notices = state.notices.filter(n => n.id !== id);
+        saveState();
+        showToast('Circular removed.');
+      }
+    }
+
+    // Events Tab
+    function renderEventsManager() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Campus Events & Annual Calendar 2026–27</h3>
+            <p class="text-xs text-slate-500">Co-curricular milestones, exhibitions, and athletic championships</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">October 22–24, 2026</span>
+              <h4 class="font-bold text-slate-900 text-sm">Annual Inter-House Sports Championship</h4>
+              <p class="text-xs text-slate-600">Track and field athletics, 100m sprint, relay, long jump, and football finals at Greenfield Arena.</p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">November 14, 2026</span>
+              <h4 class="font-bold text-slate-900 text-sm">National Children's Day & STEM Expo</h4>
+              <p class="text-xs text-slate-600">Robotics exhibits, working models of renewable energy, and science carnival for Standards 6 to 10.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Finance Overview (Principal)
+    function renderFinanceOverview() {
+      const totalCollected = state.fees.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
+      const totalPending = state.fees.filter(f => f.status === 'pending').reduce((s, f) => s + f.amount, 0);
+      const totalOverdue = state.fees.filter(f => f.status === 'overdue').reduce((s, f) => s + f.amount, 0);
+
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Institutional Bursar & Financial Realization</h3>
+            <p class="text-xs text-slate-500">Term 2 revenue realization, tuition collection velocity, and overdue recovery status</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+              <span class="text-xs font-semibold text-emerald-800 uppercase">Realized Revenue</span>
+              <div class="text-2xl font-bold font-mono text-emerald-900 mt-1">₹${totalCollected.toLocaleString()}</div>
+              <span class="text-xs text-emerald-700">Bank accounts cleared</span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+              <span class="text-xs font-semibold text-amber-800 uppercase">Pending Invoices</span>
+              <div class="text-2xl font-bold font-mono text-amber-900 mt-1">₹${totalPending.toLocaleString()}</div>
+              <span class="text-xs text-amber-700">Due by end of month</span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+              <span class="text-xs font-semibold text-rose-800 uppercase">Overdue Balances</span>
+              <div class="text-2xl font-bold font-mono text-rose-900 mt-1">₹${totalOverdue.toLocaleString()}</div>
+              <span class="text-xs text-rose-700">Automated SMS dispatched</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Reports Tab
+    function renderInstitutionalReports() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Institutional Standing & CBSE Audit Reports</h3>
+              <p class="text-xs text-slate-500">Export official CBSE audit summaries, attendance matrices, and grade distributions</p>
+            </div>
+            <button onclick="showToast('Exporting consolidated CSV ledger...')" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-blue-700">
+              📥 Export CSV
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <h4 class="font-bold text-slate-900 text-sm">CBSE Compliance Audit</h4>
+              <p class="text-xs text-slate-600">Faculty-to-student ratio 1:24. 100% syllabus alignment with NCERT curriculum guidelines.</p>
+              <button onclick="showToast('CBSE Compliance Dossier downloaded.')" class="w-full mt-2 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg">Download Dossier</button>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <h4 class="font-bold text-slate-900 text-sm">Attendance Audit Matrix</h4>
+              <p class="text-xs text-slate-600">Daily roll-call consistency 98.9%. Chronic absenteeism under 1.2% (targeted interventions active).</p>
+              <button onclick="showToast('Attendance Sheet downloaded.')" class="w-full mt-2 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg">Download Sheet</button>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <h4 class="font-bold text-slate-900 text-sm">Term Realization Audit</h4>
+              <p class="text-xs text-slate-600">Verified bursar transactions with tax receipt IDs and UPI gateway audit trails.</p>
+              <button onclick="showToast('Bursar Ledger downloaded.')" class="w-full mt-2 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg">Download Ledger</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Settings Tab
+    function renderSchoolSettings() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Greenfield International School Institutional Settings</h3>
+            <p class="text-xs text-slate-500">Board affiliation, academic terms, grading metrics, and security governance</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+              <h4 class="font-bold text-slate-900 text-sm uppercase tracking-wider">Institution Credentials</h4>
+              <div><span class="text-slate-400 block">Institution Name:</span><strong>Greenfield International School</strong></div>
+              <div><span class="text-slate-400 block">Affiliation Board:</span><strong>Central Board of Secondary Education (CBSE) #2130042</strong></div>
+              <div><span class="text-slate-400 block">Standards:</span><strong>Classes 1 to 10 (Primary, Middle, Secondary)</strong></div>
+              <div><span class="text-slate-400 block">Campus Address:</span><strong>Plot 42, Academic Boulevard, Greenfield Knowledge Park</strong></div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+              <h4 class="font-bold text-slate-900 text-sm uppercase tracking-wider">Academic Term & Security</h4>
+              <div><span class="text-slate-400 block">Academic Year:</span><strong class="font-mono">2026 – 2027</strong></div>
+              <div><span class="text-slate-400 block">Active Term:</span><strong>Term 2 (September to February)</strong></div>
+              <div><span class="text-slate-400 block">RBAC Engine:</span><strong class="text-emerald-700">Strict Role Separation Enforced</strong></div>
+              <button onclick="state.showRbacModal=true; render();" class="mt-2 px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">
+                View Access Control Matrix
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Vice Principal Views
+    function renderVicePrincipalCoordination() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Curriculum Pacing & Department Coordination</h3>
+            <p class="text-xs text-slate-500">Monitoring lesson progress, chapter targets, and lab sessions</p>
+          </div>
+          <div class="space-y-3">
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-900">
+                <span>Mathematics (Std 8) · Mrs. Shalini Verma</span>
+                <span class="text-emerald-700">Ahead of Schedule (82%)</span>
+              </div>
+              <p class="text-xs text-slate-600">Current Unit: Chapter 4 Factorisation. Next: Linear Graphs.</p>
+            </div>
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-900">
+                <span>Science (Std 9) · Dr. Alok Sen</span>
+                <span class="text-blue-700">On Track (75%)</span>
+              </div>
+              <p class="text-xs text-slate-600">Current Unit: Physics - Work and Energy. Practical lab experiments completed.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLeavesSubstitutions() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Faculty Leave Requests & Substitute Allocations</h3>
+              <p class="text-xs text-slate-500">Coordinate seamless class coverage when teachers are on approved leave</p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            ${state.leaves.map(lv => `
+              <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div>
+                  <h4 class="font-bold text-sm text-slate-900">${lv.teacherName}</h4>
+                  <p class="text-xs text-slate-600">${lv.type} · ${lv.dates} · ${lv.reason}</p>
+                  <span class="text-xs font-medium text-blue-700 mt-1 block">Assigned Substitute: ${lv.substitute}</span>
+                </div>
+                <div>
+                  ${lv.status === 'Pending' ? `
+                    <button onclick="approveLeave('${lv.id}')" class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                      Approve & Assign
+                    </button>
+                  ` : `
+                    <span class="px-2.5 py-1 text-xs font-bold font-mono rounded bg-emerald-50 text-emerald-700">
+                      ✓ Approved
+                    </span>
+                  `}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function approveLeave(id) {
+      const lv = state.leaves.find(l => l.id === id);
+      if (lv) {
+        lv.status = 'Approved';
+        saveState();
+        showToast(`Leave approved for ${lv.teacherName}. Substitute ${lv.substitute} notified.`);
+      }
+    }
+
+    function renderSubjectManagement() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-900">CBSE Prescribed Subjects & Textbooks</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <strong>Mathematics (Std 1–10)</strong>: NCERT Mathematics 2026 Edition (6 periods/week)
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <strong>Science (Std 6–10)</strong>: NCERT Science & Experimental Physics/Chemistry Lab (6 periods/week)
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <strong>English Language & Lit</strong>: Honeycomb & Moments Literary Anthologies (5 periods/week)
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <strong>Social Science</strong>: History, Civics, Geography and Economics Combined (5 periods/week)
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAttendanceMonitor() {
+      const lowAttendance = state.students.filter(s => s.attendanceRate < 90);
+      const criticalCount = state.students.filter(s => s.attendanceRate < 75).length;
+      const campusAverage = (state.students.reduce((acc, s) => acc + s.attendanceRate, 0) / (state.students.length || 1)).toFixed(1);
+
+      return `
+        <div class="space-y-4">
+          <!-- Top KPI Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-slate-500 uppercase tracking-wider font-semibold text-[10px]">Campus Average</span>
+              <div class="text-2xl font-bold font-mono text-slate-900 mt-1">${campusAverage}%</div>
+              <p class="text-[11px] text-emerald-600 mt-0.5">Across 8 sample standards</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-rose-200 shadow-sm bg-rose-50/10">
+              <span class="text-rose-700 uppercase tracking-wider font-semibold text-[10px]">Critical CBSE Risk</span>
+              <div class="text-2xl font-bold font-mono text-rose-700 mt-1">${criticalCount}</div>
+              <p class="text-[11px] text-rose-600 mt-0.5">&lt;75% Attendance disqualification</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm bg-amber-50/10">
+              <span class="text-amber-800 uppercase tracking-wider font-semibold text-[10px]">Flagged for Summons</span>
+              <div class="text-2xl font-bold font-mono text-amber-800 mt-1">${lowAttendance.length}</div>
+              <p class="text-[11px] text-amber-700 mt-0.5">Warning threshold &lt;90%</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-slate-500 uppercase tracking-wider font-semibold text-[10px]">Highest Turnout</span>
+              <div class="text-2xl font-bold font-mono text-emerald-700 mt-1">Std 10-A</div>
+              <p class="text-[11px] text-slate-400 mt-0.5">98.2% attendance record</p>
+            </div>
+          </div>
+
+          <!-- Section Breakdown -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2">
+            <h4 class="text-xs font-bold text-slate-900">Standard-wise Attendance Health</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between font-bold"><span>Std 1-A</span><span class="text-emerald-700 font-mono">97.0%</span></div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full mt-1"><div class="h-full bg-emerald-500 rounded-full" style="width: 97%"></div></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between font-bold"><span>Std 8-A</span><span class="text-emerald-700 font-mono">94.8%</span></div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full mt-1"><div class="h-full bg-emerald-500 rounded-full" style="width: 94.8%"></div></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between font-bold"><span>Std 9-B</span><span class="text-amber-700 font-mono">88.5%</span></div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full mt-1"><div class="h-full bg-amber-500 rounded-full" style="width: 88.5%"></div></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between font-bold"><span>Std 10-A</span><span class="text-emerald-700 font-mono">98.2%</span></div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full mt-1"><div class="h-full bg-emerald-500 rounded-full" style="width: 98.2%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Low Attendance Intervention Desk -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Low Attendance Intervention Desk</h3>
+                <p class="text-xs text-slate-500">Official CBSE Section 14 attendance threshold warnings & parent summons</p>
+              </div>
+              <button onclick="showToast('Dispatched official warning notices to all flagged students.')" class="px-3 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition">
+                Dispatch Batch Warnings
+              </button>
+            </div>
+
+            <div class="space-y-2">
+              ${lowAttendance.map(s => `
+                <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div>
+                    <strong class="text-slate-900">${s.name} (Std ${s.standard}-${s.section}, Roll #${s.rollNo})</strong>
+                    <div class="text-slate-500 text-[11px]">Admission: ${s.admissionNo} · Parent: ${s.parentName} (${s.parentPhone})</div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">${s.attendanceRate}% Attendance</span>
+                    <button onclick="showToast('Official CBSE Attendance Notice letter dispatched to ${s.parentName} (${s.parentPhone})')" class="px-2.5 py-1 text-xs font-semibold bg-rose-100 text-rose-800 rounded-lg hover:bg-rose-200">
+                      Issue Warning Letter
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMarksModeration() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Examination Marks Moderation & Endorsement Terminal</h3>
+            <p class="text-xs text-slate-500">Review teacher mark entries, validate grade boundaries, and endorse report cards</p>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Exam</th>
+                  <th class="py-2.5 px-3">Subject</th>
+                  <th class="py-2.5 px-3">Score</th>
+                  <th class="py-2.5 px-3">Grade</th>
+                  <th class="py-2.5 px-3">Remarks</th>
+                  <th class="py-2.5 px-3 text-right">Moderation</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${state.marks.map(m => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-semibold text-slate-900">${m.studentName}</td>
+                    <td class="py-2.5 px-3 font-mono">${m.exam}</td>
+                    <td class="py-2.5 px-3">${m.subject}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold">${m.score} / ${m.maxScore}</td>
+                    <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold font-mono">${m.grade}</span></td>
+                    <td class="py-2.5 px-3 italic text-slate-500">${m.remarks}</td>
+                    <td class="py-2.5 px-3 text-right">
+                      ${!m.endorsed ? `
+                        <button onclick="endorseMark('${m.id}')" class="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg">
+                          Endorse Mark
+                        </button>
+                      ` : `
+                        <span class="text-emerald-700 font-semibold font-mono text-[11px]">✓ Endorsed</span>
+                      `}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function endorseMark(id) {
+      const m = state.marks.find(x => x.id === id);
+      if (m) {
+        m.endorsed = true;
+        saveState();
+        showToast(`Mark for ${m.studentName} endorsed by Academic Coordinator.`);
+      }
+    }
+
+    // Teacher Web Views
+    function renderTeacherClasses() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-900">Mrs. Shalini Verma's Assigned Classes</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+              <h4 class="font-bold text-slate-900">Class 8-A (Class Teacher)</h4>
+              <p class="text-xs text-slate-600">30 Enrolled Students · Room 204</p>
+              <span class="text-xs text-emerald-700 font-semibold block">96% Class Attendance</span>
+            </div>
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+              <h4 class="font-bold text-slate-900">Class 8-B (Subject Faculty)</h4>
+              <p class="text-xs text-slate-600">32 Enrolled Students · Room 205</p>
+              <span class="text-xs text-blue-700 font-semibold block">Mathematics 6 periods/week</span>
+            </div>
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+              <h4 class="font-bold text-slate-900">Class 9-B (Subject Faculty)</h4>
+              <p class="text-xs text-slate-600">28 Enrolled Students · Room 302</p>
+              <span class="text-xs text-indigo-700 font-semibold block">Mathematics 6 periods/week</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTeacherStudents() {
+      const class8Students = state.students.filter(s => s.standard === 8 && s.section === 'A');
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-900">Class 8-A Student Profiles</h3>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Roll No</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Parent Name</th>
+                  <th class="py-2.5 px-3">Phone</th>
+                  <th class="py-2.5 px-3">Attendance</th>
+                  <th class="py-2.5 px-3">Fee Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${class8Students.map(s => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-mono font-bold">${s.rollNo}</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-900">${s.name}</td>
+                    <td class="py-2.5 px-3">${s.parentName}</td>
+                    <td class="py-2.5 px-3 font-mono">${s.parentPhone}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-emerald-700">${s.attendanceRate}%</td>
+                    <td class="py-2.5 px-3 uppercase font-bold text-[10px] ${s.feeStatus === 'paid' ? 'text-emerald-700' : 'text-amber-700'}">${s.feeStatus}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDailyRollCall() {
+      const class8Students = state.students.filter(s => s.standard === 8 && s.section === 'A');
+      const total = class8Students.length || 1;
+      const presentCount = class8Students.length - 1; // 1 absent for demo
+      const presentRate = Math.round((presentCount / total) * 100);
+
+      return `
+        <div class="space-y-4">
+          <!-- Top Attendance Header & Stats Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Class Attendance Register (Std 8-A)</h3>
+                <p class="text-xs text-slate-500">Morning Assembly Register · CBSE Compliance & Real-time Parent Notification</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="showToast('✓ All students marked Present in Std 8-A.')" class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition">
+                  ✓ Mark All Present
+                </button>
+                <button onclick="showToast('Parent Absence Alert SMS dispatched to parents of absent students.')" class="px-3 py-1.5 text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 rounded-xl hover:bg-rose-100 transition">
+                  🔔 Notify Absent Parents
+                </button>
+                <button onclick="showToast('Attendance register successfully saved and locked for Std 8-A.')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-700 rounded-xl shadow-xs hover:bg-blue-800 transition">
+                  Save Register
+                </button>
+              </div>
+            </div>
+
+            <!-- Attendance HUD Live Statistics -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block">Class Roster</span>
+                <div class="text-2xl font-bold font-mono text-slate-800 mt-0.5">${class8Students.length} Students</div>
+                <span class="text-[11px] text-slate-500">Std 8 - Section A</span>
+              </div>
+              <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-[10px] uppercase font-bold text-emerald-800">Present</span>
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                </div>
+                <div class="text-2xl font-bold font-mono text-emerald-800 mt-0.5">${presentCount}</div>
+                <span class="text-[11px] font-bold text-emerald-700">${presentRate}% Attendance</span>
+              </div>
+              <div class="p-3 bg-rose-50 rounded-xl border border-rose-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-[10px] uppercase font-bold text-rose-800">Absent</span>
+                  <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                </div>
+                <div class="text-2xl font-bold font-mono text-rose-800 mt-0.5">1</div>
+                <span class="text-[11px] text-rose-700">SMS alert pending</span>
+              </div>
+              <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-[10px] uppercase font-bold text-amber-800">Late / Leave</span>
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                </div>
+                <div class="text-2xl font-bold font-mono text-amber-800 mt-0.5">0</div>
+                <span class="text-[11px] text-amber-700">On-time assembly</span>
+              </div>
+            </div>
+
+            <!-- Progress Meter -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-slate-500">
+                <span>Class Turnout Ratio</span>
+                <span class="font-mono font-bold text-slate-800">${presentRate}% Present Today</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
+                <div class="h-full bg-emerald-500" style="width: ${presentRate}%"></div>
+                <div class="h-full bg-rose-500" style="width: ${100 - presentRate}%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Roster List -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+            <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Morning Roll Call Register</h4>
+            <div class="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden">
+              ${class8Students.map((s, idx) => {
+                const isAbsentDemo = (idx === 3);
+                return `
+                  <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                      <span class="w-8 h-8 rounded-full ${isAbsentDemo ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'} font-bold flex items-center justify-center font-mono">
+                        #${s.rollNo}
+                      </span>
+                      <div>
+                        <strong class="text-slate-900 text-sm">${s.name}</strong>
+                        <div class="text-[11px] text-slate-400 font-mono">Adm: ${s.admissionNo} · Parent: ${s.parentName} (${s.parentPhone})</div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                      <div class="text-right hidden sm:block">
+                        <span class="text-[10px] text-slate-400 block">Health</span>
+                        <span class="font-mono font-bold text-xs ${s.attendanceRate >= 90 ? 'text-emerald-700' : 'text-amber-700'}">${s.attendanceRate}%</span>
+                      </div>
+
+                      <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                        <button onclick="showToast('${s.name} marked Present')" class="px-3 py-1 text-xs font-bold rounded-lg ${!isAbsentDemo ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'}">
+                          P
+                        </button>
+                        <button onclick="showToast('${s.name} marked Absent')" class="px-3 py-1 text-xs font-bold rounded-lg ${isAbsentDemo ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'}">
+                          A
+                        </button>
+                        <button onclick="showToast('${s.name} marked Late')" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-200">
+                          L
+                        </button>
+                        <button onclick="showToast('${s.name} marked Leave (Excused)')" class="px-2 py-1 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-200">
+                          Leave
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTeacherGradebook() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Marks & Gradebook Entry (Mathematics - Class 8-A)</h3>
+              <p class="text-xs text-slate-500">Mid-Term Examination · Max Marks: 100</p>
+            </div>
+            <button onclick="promptRecordMark()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-blue-700">
+              + Enter Score
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Subject</th>
+                  <th class="py-2.5 px-3">Score / 100</th>
+                  <th class="py-2.5 px-3">Grade</th>
+                  <th class="py-2.5 px-3">Teacher Remarks</th>
+                  <th class="py-2.5 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${state.marks.filter(m => m.standard === 8 && m.subject === 'Mathematics').map(m => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-semibold text-slate-900">${m.studentName}</td>
+                    <td class="py-2.5 px-3">${m.subject}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold">${m.score} / ${m.maxScore}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-blue-700">${m.grade}</td>
+                    <td class="py-2.5 px-3 italic text-slate-500">${m.remarks}</td>
+                    <td class="py-2.5 px-3">${m.endorsed ? '<span class="text-emerald-700 font-semibold">✓ Endorsed</span>' : '<span class="text-amber-700 font-semibold">Pending Endorsement</span>'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function promptRecordMark() {
+      const studentName = prompt('Enter Student Name:', 'Aarav Sharma');
+      if (!studentName) return;
+      const score = parseInt(prompt('Enter Score out of 100:', '95')) || 90;
+      let grade = 'A1';
+      if (score < 91 && score >= 81) grade = 'A2';
+      else if (score < 81 && score >= 71) grade = 'B1';
+      else if (score < 71 && score >= 61) grade = 'B2';
+      const remark = prompt('Enter Teacher Remark:', 'Outstanding performance') || 'Good';
+
+      state.marks.push({
+        id: 'm-' + Date.now(),
+        studentName: studentName,
+        standard: 8,
+        section: 'A',
+        subject: 'Mathematics',
+        score: score,
+        maxScore: 100,
+        exam: 'Mid-Term Exam',
+        grade: grade,
+        remarks: remark,
+        endorsed: false
+      });
+
+      saveState();
+      showToast(`Score recorded for ${studentName} (${score}/100 - Grade ${grade}).`);
+    }
+
+    function renderTeacherAssignments() {
+      return renderAssignmentsMonitor();
+    }
+
+    function renderTeacherTimetable() {
+      return renderTimetableMaster();
+    }
+
+    function renderParentMessages() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Parent Communication Channel</h3>
+            <p class="text-xs text-slate-500">Active dialogue with Dr. Rajesh Sharma (Father of Aarav Sharma, Std 8-A)</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 min-h-[250px] flex flex-col justify-between">
+            <div class="space-y-2">
+              ${state.messages.map(msg => `
+                <div class="flex flex-col ${msg.isParent ? 'items-start' : 'items-end'}">
+                  <div class="max-w-md p-3 rounded-2xl text-xs ${msg.isParent ? 'bg-white border border-slate-200 text-slate-800' : 'bg-blue-600 text-white shadow-sm'}">
+                    <div class="font-bold text-[10px] ${msg.isParent ? 'text-blue-700' : 'text-blue-100'} mb-1">${msg.sender}</div>
+                    <p>${msg.text}</p>
+                    <span class="text-[9px] block text-right mt-1 opacity-70 font-mono">${msg.time}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="pt-3 border-t border-slate-200 flex gap-2">
+              <input id="chatInput" type="text" placeholder="Type response to parent..." class="flex-1 p-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <button onclick="sendChatMessage()" class="px-4 py-2 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl shadow-sm">
+                Send Reply
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      if (!input || !input.value.trim()) return;
+
+      state.messages.push({
+        id: 'msg-' + Date.now(),
+        sender: 'Mrs. Shalini Verma (Teacher)',
+        recipient: 'Dr. Rajesh Sharma',
+        text: input.value.trim(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isParent: false
+      });
+
+      input.value = '';
+      saveState();
+      showToast('Message sent to parent mobile notification feed.');
+    }
+
+    // Accountant Views
+    function renderAccountantStudents() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Student Tuition & Fees Roster</h3>
+              <p class="text-xs text-slate-500">Standards 1 to 10 active billing and payment tracking</p>
+            </div>
+            <button onclick="promptCreateInvoice()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-emerald-700">
+              + Generate Invoice
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Invoice No</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Standard</th>
+                  <th class="py-2.5 px-3">Fee Type</th>
+                  <th class="py-2.5 px-3">Amount</th>
+                  <th class="py-2.5 px-3">Status</th>
+                  <th class="py-2.5 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${state.fees.map(f => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-900">${f.invoiceNo}</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-900">${f.studentName}</td>
+                    <td class="py-2.5 px-3 font-mono">Std ${f.standard}-${f.section}</td>
+                    <td class="py-2.5 px-3">${f.feeType}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold">₹${f.amount.toLocaleString()}</td>
+                    <td class="py-2.5 px-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${f.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : f.status === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}">
+                        ${f.status}
+                      </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right">
+                      ${f.status !== 'paid' ? `
+                        <button onclick="collectFee('${f.id}')" class="px-2.5 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                          Collect Fee
+                        </button>
+                      ` : `
+                        <span class="font-mono text-slate-500 font-bold">${f.receiptNo}</span>
+                      `}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function collectFee(id) {
+      const inv = state.fees.find(f => f.id === id);
+      if (inv) {
+        inv.status = 'paid';
+        inv.receiptNo = 'RCP-' + Math.floor(10000 + Math.random() * 90000);
+        inv.paidDate = new Date().toISOString().split('T')[0];
+
+        // Also sync student status
+        const s = state.students.find(st => st.id === inv.studentId);
+        if (s) s.feeStatus = 'paid';
+
+        saveState();
+        showToast(`Fee cleared for ${inv.studentName}. Receipt ${inv.receiptNo} generated.`);
+      }
+    }
+
+    function promptCreateInvoice() {
+      const stuName = prompt('Enter Student Name for Invoice:', 'Rohan Deshmukh');
+      if (!stuName) return;
+      const amount = parseInt(prompt('Enter Fee Amount in INR:', '28500')) || 28500;
+
+      const newInv = {
+        id: 'inv-' + Date.now(),
+        invoiceNo: 'INV-2026-0' + (state.fees.length + 845),
+        studentId: 'stu-103',
+        studentName: stuName,
+        standard: 8,
+        section: 'A',
+        amount: amount,
+        feeType: 'Term 2 Tuition & Activity Fee',
+        dueDate: '2026-11-05',
+        status: 'pending'
+      };
+
+      state.fees.push(newInv);
+      saveState();
+      showToast(`Invoice ${newInv.invoiceNo} created for ${stuName}.`);
+    }
+
+    function renderFeeStructure() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-900">Greenfield Approved Term Fee Structure</h3>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Grade Bracket</th>
+                  <th class="py-2.5 px-3">Tuition Fee</th>
+                  <th class="py-2.5 px-3">Computer Lab</th>
+                  <th class="py-2.5 px-3">Activities & Sports</th>
+                  <th class="py-2.5 px-3">Total Term Installment</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${state.feeStructure.map(fs => `
+                  <tr>
+                    <td class="py-2.5 px-3 font-bold text-slate-900">${fs.standard}</td>
+                    <td class="py-2.5 px-3 font-mono">₹${fs.tuition.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 font-mono">₹${fs.computer.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 font-mono">₹${(fs.activity || fs.lab || 2500).toLocaleString()}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-emerald-800">₹${fs.total.toLocaleString()}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCollectionsLedger() {
+      const paid = state.fees.filter(f => f.status === 'paid');
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-900">Collections Ledger & Bank Deposits</h3>
+          <div class="space-y-2">
+            ${paid.map(p => `
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                <div>
+                  <strong class="text-slate-900">${p.studentName}</strong> · ${p.feeType}
+                  <div class="text-[11px] font-mono text-slate-500">Receipt: ${p.receiptNo} · Date: ${p.paidDate || '2026-10-05'}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold font-mono text-emerald-700 text-sm">₹${p.amount.toLocaleString()}</div>
+                  <span class="text-[10px] text-slate-500">Settled via UPI / NetBanking</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPendingOverdue() {
+      const dues = state.fees.filter(f => f.status !== 'paid');
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-900">Pending & Overdue Fee Accounts</h3>
+          <div class="space-y-2">
+            ${dues.map(d => `
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                <div>
+                  <strong class="text-slate-900">${d.studentName} (Std ${d.standard}-${d.section})</strong>
+                  <div class="text-slate-500">${d.feeType} · Due: ${d.dueDate}</div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="font-bold font-mono text-rose-700">₹${d.amount.toLocaleString()}</span>
+                  <button onclick="showToast('SMS reminder sent to parent.')" class="px-2.5 py-1 text-xs font-semibold bg-amber-100 text-amber-800 rounded-lg">
+                    Send Reminder
+                  </button>
+                  <button onclick="collectFee('${d.id}')" class="px-2.5 py-1 text-xs font-semibold text-white bg-emerald-600 rounded-lg">
+                    Collect
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderReceipts() {
+      return renderCollectionsLedger();
+    }
+
+    function renderPaymentHistory() {
+      return renderCollectionsLedger();
+    }
+
+    function renderFinancialReports() {
+      return renderFinanceOverview();
+    }
+
+    // Receptionist Views
+    function renderEnquiriesCRM() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Admission Enquiries Pipeline CRM</h3>
+              <p class="text-xs text-slate-500">Follow-up tracking, entrance assessments, and parent interactions</p>
+            </div>
+            <button onclick="promptAddEnquiry()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-blue-700">
+              + New Enquiry
+            </button>
+          </div>
+
+          <div class="divide-y divide-slate-100 rounded-xl border border-slate-200">
+            ${state.enquiries.map(enq => `
+              <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-slate-50">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <strong class="text-slate-900 text-sm">${enq.candidateName}</strong>
+                    <span class="px-2 py-0.5 rounded font-mono text-[10px] bg-blue-100 text-blue-800 font-semibold">Std ${enq.standard}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-semibold text-slate-700">${enq.status}</span>
+                  </div>
+                  <p class="text-slate-600 mt-1">Parent: ${enq.parentName} · Phone: ${enq.phone}</p>
+                  <span class="text-slate-400 font-mono text-[11px] block mt-0.5">Notes: ${enq.notes}</span>
+                </div>
+                <button onclick="showToast('Candidate interview scheduled.')" class="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 shrink-0">
+                  Schedule Interview
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function promptAddEnquiry() {
+      const name = prompt('Candidate Student Name:');
+      if (!name) return;
+      const std = parseInt(prompt('Standard Applying (1 to 10):', '6')) || 6;
+      const parent = prompt('Parent Name:', 'Girish Roy') || 'Parent';
+      const phone = prompt('Parent Contact Phone:', '+91 98000 11111') || '+91 98000 11111';
+
+      state.enquiries.unshift({
+        id: 'enq-' + Date.now(),
+        candidateName: name,
+        standard: std,
+        parentName: parent,
+        phone: phone,
+        date: new Date().toISOString().split('T')[0],
+        status: 'New Enquiry',
+        notes: 'Walk-in enquiry at reception'
+      });
+
+      saveState();
+      showToast(`Enquiry registered for ${name}.`);
+    }
+
+    function renderDirectAdmissions() {
+      return renderEnquiriesCRM();
+    }
+
+    function renderVisitorPasses() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Campus Visitor Gate Passes & Security Log</h3>
+              <p class="text-xs text-slate-500">Track all external parents, inspectors, and vendors on campus</p>
+            </div>
+            <button onclick="promptLogVisitor()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-blue-700">
+              + Generate Gate Pass
+            </button>
+          </div>
+
+          <div class="divide-y divide-slate-100 rounded-xl border border-slate-200">
+            ${state.visitors.map(v => `
+              <div class="p-4 flex items-center justify-between text-xs hover:bg-slate-50">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-900">${v.passNo}</span>
+                    <strong class="text-slate-900">${v.name}</strong>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${v.status === 'inside' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                      ${v.status === 'inside' ? '● On Campus' : 'Checked Out'}
+                    </span>
+                  </div>
+                  <p class="text-slate-600 mt-1">Purpose: ${v.purpose} · Host: ${v.meetingWith} · In: ${v.checkIn}</p>
+                </div>
+                ${v.status === 'inside' ? `
+                  <button onclick="checkoutVisitor('${v.id}')" class="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100">
+                    Check Out
+                  </button>
+                ` : `
+                  <span class="text-slate-400 font-mono text-[11px]">Out: ${v.checkOut}</span>
+                `}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function promptLogVisitor() {
+      const name = prompt('Visitor Full Name:');
+      if (!name) return;
+      const purpose = prompt('Purpose of Visit:', 'Parent Consultation') || 'Consultation';
+      const meetingWith = prompt('Meeting With (Staff/Office):', 'Class Teacher') || 'Class Teacher';
+
+      state.visitors.unshift({
+        id: 'vis-' + Date.now(),
+        passNo: 'VP-2026-0' + (state.visitors.length + 105),
+        name: name,
+        phone: '+91 98765 00000',
+        purpose: purpose,
+        meetingWith: meetingWith,
+        checkIn: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'inside'
+      });
+
+      saveState();
+      showToast(`Gate Pass issued to ${name}.`);
+    }
+
+    function checkoutVisitor(id) {
+      const v = state.visitors.find(x => x.id === id);
+      if (v) {
+        v.status = 'completed';
+        v.checkOut = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        saveState();
+        showToast(`Visitor ${v.name} checked out.`);
+      }
+    }
+
+    function renderAppointmentsCalendar() {
+      return renderVisitorPasses();
+    }
+
+    function renderStudentDirectory() {
+      return renderPrincipalStudents();
+    }
+
+    function renderParentDirectory() {
+      return renderPrincipalStudents();
+    }
+
+    // Librarian Views
+    function renderBooksRepository() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Greenfield Central Library Catalog</h3>
+              <p class="text-xs text-slate-500">Accession IDs, authors, categories, shelf locations, and copies availability</p>
+            </div>
+            <button onclick="promptAddBook()" class="px-3.5 py-2 text-xs font-semibold text-white rounded-xl shadow-sm bg-purple-700">
+              + Add Book
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Accession ID</th>
+                  <th class="py-2.5 px-3">Title</th>
+                  <th class="py-2.5 px-3">Author</th>
+                  <th class="py-2.5 px-3">Category</th>
+                  <th class="py-2.5 px-3">Rack</th>
+                  <th class="py-2.5 px-3">Available / Total</th>
+                  <th class="py-2.5 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                ${state.books.map(b => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-900">${b.bookId}</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-900">${b.title}</td>
+                    <td class="py-2.5 px-3">${b.author}</td>
+                    <td class="py-2.5 px-3 font-medium text-purple-700">${b.category}</td>
+                    <td class="py-2.5 px-3 font-mono">${b.rack}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold ${b.available > 0 ? 'text-emerald-700' : 'text-rose-700'}">${b.available} / ${b.total} Copies</td>
+                    <td class="py-2.5 px-3 text-right">
+                      <button onclick="promptIssueBook('${b.id}')" class="px-2.5 py-1 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg">
+                        Issue Book
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function promptAddBook() {
+      const title = prompt('Enter Book Title:');
+      if (!title) return;
+      const author = prompt('Enter Author Name:', 'Stephen Hawking') || 'Author';
+      const cat = prompt('Enter Category:', 'Science') || 'General';
+
+      state.books.push({
+        id: 'bk-' + Date.now(),
+        bookId: 'GIS-LIB-0' + (state.books.length + 501),
+        title: title,
+        author: author,
+        category: cat,
+        isbn: '978-' + Math.floor(1000000000 + Math.random() * 9000000000),
+        total: 5,
+        available: 5,
+        rack: 'Shelf G-01'
+      });
+
+      saveState();
+      showToast(`Book '${title}' added to library catalog.`);
+    }
+
+    function promptIssueBook(bookId) {
+      const book = state.books.find(b => b.id === bookId);
+      if (!book || book.available <= 0) {
+        alert('No copies currently available.');
+        return;
+      }
+      const member = prompt('Enter Student Name / ID to issue:', 'Aarav Sharma (Std 8-A)') || 'Aarav Sharma';
+
+      book.available -= 1;
+      state.bookIssues.unshift({
+        id: 'iss-' + Date.now(),
+        issueNo: 'ISS-2026-0' + (state.bookIssues.length + 350),
+        bookTitle: book.title,
+        memberName: member,
+        issueDate: new Date().toISOString().split('T')[0],
+        dueDate: '2026-10-28',
+        status: 'borrowed'
+      });
+
+      saveState();
+      showToast(`Book '${book.title}' issued to ${member}.`);
+    }
+
+    function renderLibraryMembers() {
+      return renderPrincipalStudents();
+    }
+
+    function renderCirculationTerminal() {
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-900">Active Book Issues & Circulation Terminal</h3>
+          <div class="divide-y divide-slate-100 rounded-xl border border-slate-200">
+            ${state.bookIssues.map(iss => `
+              <div class="p-4 flex items-center justify-between text-xs hover:bg-slate-50">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-900">${iss.issueNo}</span>
+                    <strong class="text-slate-900">${iss.bookTitle}</strong>
+                    <span class="px-2 py-0.5 rounded font-mono text-[10px] ${iss.status === 'borrowed' ? 'bg-blue-100 text-blue-800' : 'bg-rose-100 text-rose-800 font-bold'}">
+                      ${iss.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p class="text-slate-600 mt-1">Borrower: ${iss.memberName} · Issued: ${iss.issueDate} · Due: ${iss.dueDate}</p>
+                  ${iss.fineAmount ? `<span class="text-rose-700 font-bold font-mono text-[11px]">Overdue: ${iss.fineDays} Days · Fine Accrued: ₹${iss.fineAmount}</span>` : ''}
+                </div>
+                <button onclick="returnBook('${iss.id}')" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100">
+                  Return Book
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function returnBook(issueId) {
+      const iss = state.bookIssues.find(i => i.id === issueId);
+      if (iss) {
+        const book = state.books.find(b => b.title === iss.bookTitle);
+        if (book) book.available += 1;
+        state.bookIssues = state.bookIssues.filter(i => i.id !== issueId);
+        saveState();
+        showToast(`Book '${iss.bookTitle}' returned to shelf.`);
+      }
+    }
+
+    function renderDueBooksTracker() {
+      return renderCirculationTerminal();
+    }
+
+    function renderOverdueFines() {
+      return renderCirculationTerminal();
+    }
+
+    function renderCirculationReports() {
+      return renderBooksRepository();
+    }
+
+    // View: Mobile App View (Teacher Mobile & Parent Mobile)
+    function renderMobileView() {
+      const theme = getTheme();
+      const role = getActiveRole();
+      const tabs = getRoleTabs(role.id);
+
+      return `
+        <div class="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-2 sm:p-6">
+          <!-- Top Utility Bar -->
+          <div class="w-full max-w-md flex items-center justify-between mb-3 text-xs">
+            <button onclick="state.currentRole=null; saveState();" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold flex items-center gap-1.5">
+              &larr; Switch Role Hub
+            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="state.showRbacModal=true; render();" class="px-2.5 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold text-[11px]">
+                🛡️ RBAC
+              </button>
+              <button onclick="resetData()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-400 font-semibold text-[11px]">
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Smartphone Shell Frame -->
+          <div class="w-full max-w-md bg-white text-slate-900 rounded-[38px] shadow-2xl border-4 border-slate-800 overflow-hidden flex flex-col h-[740px] relative">
+            <!-- Mobile Header Notch & App Bar -->
+            <header class="px-5 pt-3 pb-3 border-b border-slate-100 shrink-0 text-white shadow-sm" style="background-color: ${theme.hex}">
+              <div class="flex items-center justify-between text-[11px] font-mono opacity-80 mb-2">
+                <span>09:41 AM</span>
+                <span class="tracking-widest">●●● 5G 100%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-[10px] uppercase font-bold tracking-wider opacity-90">EDUCORE MOBILE</div>
+                  <div class="font-extrabold text-sm leading-tight">${role.user}</div>
+                  <div class="text-[10px] opacity-80">${role.designation}</div>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs">
+                  ${role.user.charAt(0)}
+                </div>
+              </div>
+
+              <!-- Multi-child Switcher for Parent Mobile -->
+              ${role.id === 'parent_mobile' ? `
+                <div class="mt-3 pt-2 border-t border-white/20 flex items-center justify-between">
+                  <span class="text-[10px] uppercase font-semibold">Select Child:</span>
+                  <div class="flex gap-1.5">
+                    <button onclick="state.activeChildId='stu-101'; saveState();" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold transition ${state.activeChildId === 'stu-101' ? 'bg-white text-slate-900 shadow' : 'bg-white/20 text-white'}">
+                      Aarav (Std 8-A)
+                    </button>
+                    <button onclick="state.activeChildId='stu-102'; saveState();" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold transition ${state.activeChildId === 'stu-102' ? 'bg-white text-slate-900 shadow' : 'bg-white/20 text-white'}">
+                      Ananya (Std 5-B)
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+            </header>
+
+            <!-- Scrollable Mobile Body Content -->
+            <main class="flex-1 overflow-y-auto p-4 space-y-4 text-xs bg-slate-50">
+              ${renderMobileTabContent(role.id, state.activeTab)}
+            </main>
+
+            <!-- Bottom Navigation Bar -->
+            <nav class="bg-white border-t border-slate-200 px-2 py-2 flex items-center justify-around shrink-0 text-slate-500">
+              ${tabs.map(t => {
+                const isActive = state.activeTab === t.id;
+                return `
+                  <button onclick="state.activeTab='${t.id}'; saveState();" class="flex flex-col items-center py-1 px-2 rounded-xl transition ${isActive ? 'font-bold' : 'opacity-70 hover:opacity-100'}" style="${isActive ? `color: ${theme.hex}` : ''}">
+                    <span class="text-base">${t.icon}</span>
+                    <span class="text-[9px] mt-0.5">${t.label}</span>
+                  </button>
+                `;
+              }).join('')}
+            </nav>
+          </div>
+
+          ${state.showRbacModal ? renderRbacModal() : ''}
+          ${state.toast ? renderToast(state.toast) : ''}
+        </div>
+      `;
+    }
+
+    function renderMobileTabContent(roleId, tab) {
+      if (roleId === 'teacher_mobile') {
+        if (tab === 'home') {
+          return `
+            <div class="space-y-3">
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Today's Class Schedule</span>
+                <h4 class="font-bold text-sm text-slate-900">Period 1 · Class 8-A Mathematics</h4>
+                <p class="text-slate-500">08:20 AM - 09:05 AM · Room 204</p>
+                <button onclick="state.activeTab='attendance'; saveState();" class="mt-2 w-full py-2 text-xs font-semibold text-white bg-blue-700 rounded-xl shadow-sm">
+                  Take Morning Roll Call
+                </button>
+              </div>
+
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-slate-900">Upcoming Homework Deadlines</span>
+                  <span class="text-[10px] text-blue-700 font-semibold">Class 8-A</span>
+                </div>
+                <div class="space-y-1.5 text-[11px] text-slate-600">
+                  <div class="p-2 bg-slate-50 rounded-lg">Linear Equations (Ex 3.4) · Due Oct 18</div>
+                  <div class="p-2 bg-slate-50 rounded-lg">Algebra Formulas Practice · Due Oct 21</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        if (tab === 'attendance') return renderDailyRollCall();
+        if (tab === 'classes') return renderTeacherClasses();
+        if (tab === 'marks') return renderTeacherGradebook();
+        if (tab === 'assignments') return renderTeacherAssignments();
+        if (tab === 'timetable') return renderTimetableMaster();
+        if (tab === 'profile') {
+          return `
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="font-bold text-slate-900 text-sm">Faculty Profile</h4>
+              <div class="space-y-1 text-slate-600">
+                <div>Name: <strong>Mrs. Shalini Verma</strong></div>
+                <div>Employee ID: <strong>TCH-2016-042</strong></div>
+                <div>Department: <strong>Mathematics</strong></div>
+                <div>Leave Balance: <strong>8 Days Remaining</strong></div>
+              </div>
+              <button onclick="showToast('Leave request submitted to Academic Coordinator.')" class="w-full py-2 text-xs font-semibold text-white bg-amber-600 rounded-xl">
+                Apply for Casual / Medical Leave
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      if (roleId === 'parent_mobile') {
+        const activeChild = state.students.find(s => s.id === state.activeChildId) || state.students[0];
+        const childFee = state.fees.find(f => f.studentId === activeChild.id && f.status !== 'paid') || null;
+
+        if (tab === 'home') {
+          return `
+            <div class="space-y-3">
+              <!-- Child Dossier Card -->
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-bold text-base text-slate-900">${activeChild.name}</h4>
+                    <span class="text-xs text-blue-700 font-semibold font-mono">Standard ${activeChild.standard}-${activeChild.section} · Roll #${activeChild.rollNo}</span>
+                  </div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${activeChild.feeStatus === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
+                    Fee: ${activeChild.feeStatus}
+                  </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-slate-600">
+                  <div>Attendance: <strong class="text-emerald-700 font-mono">${activeChild.attendanceRate}%</strong></div>
+                  <div>House: <strong>${activeChild.house}</strong></div>
+                  <div>Admission No: <strong class="font-mono text-[10px]">${activeChild.admissionNo}</strong></div>
+                  <div>Class Teacher: <strong>Mrs. Verma</strong></div>
+                </div>
+              </div>
+
+              <!-- Quick Fee Settlement Banner -->
+              ${childFee ? `
+                <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-4 rounded-2xl shadow-md space-y-2">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold uppercase tracking-wider text-amber-100">Term 2 Fee Due</span>
+                    <span class="font-mono text-xs">Due: ${childFee.dueDate}</span>
+                  </div>
+                  <div class="text-2xl font-bold font-mono">₹${childFee.amount.toLocaleString()}</div>
+                  <button onclick="collectFee('${childFee.id}')" class="w-full py-2 bg-white text-slate-900 font-bold text-xs rounded-xl shadow transition hover:bg-amber-50">
+                    Pay Now via Instant UPI / NetBanking
+                  </button>
+                </div>
+              ` : `
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl text-emerald-800 flex items-center justify-between text-xs">
+                  <span>✓ All Term 2 Fees Cleared for ${activeChild.name}</span>
+                  <span class="font-mono font-bold">RCP-88310</span>
+                </div>
+              `}
+
+              <!-- Latest Marks Overview -->
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <span class="font-bold text-slate-900">Mid-Term Academic Performance</span>
+                <div class="space-y-1.5">
+                  ${state.marks.filter(m => m.studentId === activeChild.id).map(m => `
+                    <div class="flex justify-between items-center p-2 rounded-lg bg-slate-50 text-[11px]">
+                      <span>${m.subject}</span>
+                      <span class="font-mono font-bold text-blue-700">${m.score}/100 (${m.grade})</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        if (tab === 'academics') {
+          return `
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="font-bold text-slate-900 text-sm">Official CBSE Report Card · Term 2</h4>
+              <div class="space-y-2">
+                ${state.marks.filter(m => m.studentId === activeChild.id).map(m => `
+                  <div class="p-3 rounded-xl border border-slate-100 bg-slate-50 space-y-1">
+                    <div class="flex justify-between font-bold text-slate-900">
+                      <span>${m.subject}</span>
+                      <span class="font-mono text-blue-700">${m.score} / 100 (${m.grade})</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 italic">${m.remarks}</p>
+                    <span class="text-[10px] text-emerald-700 font-semibold block">${m.endorsed ? '✓ Endorsed by Academic Coordinator' : 'Pending Endorsement'}</span>
+                  </div>
+                `).join('')}
+              </div>
+              <button onclick="showToast('Downloading Official Term 2 PDF Report Card...')" class="w-full py-2 bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm">
+                Download Official PDF Report Card
+              </button>
+            </div>
+          `;
+        }
+
+        if (tab === 'fees') {
+          return `
+            <div class="space-y-3">
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <h4 class="font-bold text-slate-900 text-sm">Fees & Payment History</h4>
+                ${childFee ? `
+                  <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-2">
+                    <div class="flex justify-between font-bold text-slate-900">
+                      <span>${childFee.feeType}</span>
+                      <span class="font-mono text-amber-900">₹${childFee.amount.toLocaleString()}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500">Invoice: ${childFee.invoiceNo} · Due: ${childFee.dueDate}</div>
+                    <button onclick="collectFee('${childFee.id}')" class="w-full py-1.5 text-xs font-semibold text-white bg-emerald-600 rounded-lg">
+                      Pay Immediately via UPI
+                    </button>
+                  </div>
+                ` : `
+                  <div class="p-3 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-semibold">
+                    ✓ No Outstanding Dues for ${activeChild.name}
+                  </div>
+                `}
+              </div>
+            </div>
+          `;
+        }
+
+        if (tab === 'chat') return renderParentMessages();
+        if (tab === 'attendance') {
+          return `
+            <div class="space-y-4">
+              <!-- Health Card -->
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Attendance Health</span>
+                    <div class="text-3xl font-extrabold font-mono text-emerald-700 mt-0.5">${activeChild.attendanceRate}%</div>
+                  </div>
+                  <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">
+                    CBSE Safe Zone
+                  </span>
+                </div>
+                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-emerald-500 rounded-full" style="width: ${activeChild.attendanceRate}%"></div>
+                </div>
+                <div class="grid grid-cols-4 gap-1.5 pt-1 border-t border-slate-100 text-center text-xs">
+                  <div class="p-1.5 bg-slate-50 rounded-lg"><span class="text-[9px] text-slate-400 block font-bold">WORKING</span><strong class="font-mono">24</strong></div>
+                  <div class="p-1.5 bg-emerald-50 text-emerald-800 rounded-lg"><span class="text-[9px] text-emerald-700 block font-bold">PRESENT</span><strong class="font-mono">22</strong></div>
+                  <div class="p-1.5 bg-purple-50 text-purple-800 rounded-lg"><span class="text-[9px] text-purple-700 block font-bold">LEAVE</span><strong class="font-mono">1</strong></div>
+                  <div class="p-1.5 bg-rose-50 text-rose-800 rounded-lg"><span class="text-[9px] text-rose-700 block font-bold">ABSENT</span><strong class="font-mono">1</strong></div>
+                </div>
+              </div>
+
+              <!-- October 2026 Calendar Grid -->
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+                <div class="flex justify-between items-center">
+                  <h4 class="font-bold text-slate-900 text-xs">October 2026 Roll Calendar</h4>
+                  <button onclick="showToast('Leave application submitted to Class Teacher for approval.')" class="px-2 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg">
+                    + Apply Leave
+                  </button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-mono">
+                  <span class="text-slate-400 font-bold">M</span><span class="text-slate-400 font-bold">T</span><span class="text-slate-400 font-bold">W</span><span class="text-slate-400 font-bold">T</span><span class="text-slate-400 font-bold">F</span><span class="text-rose-400 font-bold">S</span><span class="text-rose-400 font-bold">S</span>
+                  ${Array.from({ length: 31 }, (_, i) => i + 1).map(day => {
+                    const isSun = (day % 7 === 4);
+                    const isSat = (day % 7 === 3);
+                    const isHol = isSun || isSat || day === 2 || day === 20;
+                    const isAbsent = day === 12;
+                    const isLeave = day === 6;
+                    const isToday = day === 14;
+                    const isFuture = day > 14;
+                    let cls = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                    if (isHol) cls = 'bg-slate-100 text-slate-400 border-transparent';
+                    else if (isFuture) cls = 'bg-slate-50 text-slate-400 border-dashed border-slate-200';
+                    else if (isAbsent) cls = 'bg-rose-100 text-rose-800 font-bold border-rose-300';
+                    else if (isLeave) cls = 'bg-purple-100 text-purple-800 font-bold border-purple-300';
+                    return `<div class="h-7 rounded border flex items-center justify-center text-[10px] ${cls} ${isToday ? 'ring-2 ring-blue-500 font-bold' : ''}">${day}</div>`;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Session Logs -->
+              <div class="space-y-1.5 text-xs">
+                <span class="font-bold text-slate-900 text-xs block">Recent Attendance Entries</span>
+                <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex justify-between items-center">
+                  <div>
+                    <strong class="text-slate-800 font-mono">2026-10-14 (Today)</strong>
+                    <p class="text-[10px] text-slate-400">Morning Assembly Roll-Call</p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">PRESENT</span>
+                </div>
+                <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex justify-between items-center">
+                  <div>
+                    <strong class="text-slate-800 font-mono">2026-10-13</strong>
+                    <p class="text-[10px] text-slate-400">Morning Assembly Roll-Call</p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">PRESENT</span>
+                </div>
+                <div class="p-2.5 rounded-xl border border-rose-200 bg-rose-50/20 flex justify-between items-center">
+                  <div>
+                    <strong class="text-slate-800 font-mono">2026-10-12</strong>
+                    <p class="text-[10px] text-slate-400">Parent medical note logged: Viral fever</p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">ABSENT</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        if (tab === 'assignments') return renderAssignmentsMonitor();
+        if (tab === 'profile') {
+          return `
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+              <h4 class="font-bold text-slate-900 text-sm">Parent Profile</h4>
+              <div>Parent: <strong>Dr. Rajesh Sharma</strong></div>
+              <div>Phone: <strong>+91 98765 43210</strong></div>
+              <div>Address: <strong>402 Emerald Towers, Greenfield City</strong></div>
+            </div>
+          `;
+        }
+      }
+
+      return `<div class="p-4 text-center text-slate-400">Mobile Module ${tab} active.</div>`;
+    }
+
+    // Modal: Role Permissions & RBAC Inspector
+    function renderRbacModal() {
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
+          <div class="bg-white text-slate-900 rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <span>🛡️</span> Role-Based Access Control (RBAC) Security Matrix
+                </h3>
+                <p class="text-xs text-slate-500">Greenfield International School Institutional Security & Governance</p>
+              </div>
+              <button onclick="state.showRbacModal=false; render();" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold">
+                ✕ Close
+              </button>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="py-2.5 px-3">School Module</th>
+                    <th class="py-2.5 px-3">Principal (L5)</th>
+                    <th class="py-2.5 px-3">Vice Principal (L4)</th>
+                    <th class="py-2.5 px-3">Teacher Web (L2)</th>
+                    <th class="py-2.5 px-3">Accountant (L3)</th>
+                    <th class="py-2.5 px-3">Receptionist (L2)</th>
+                    <th class="py-2.5 px-3">Librarian (L2)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                  ${PERMISSION_MATRIX.map(row => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="py-2.5 px-3 font-semibold text-slate-900">${row.module}</td>
+                      <td class="py-2.5 px-3 font-semibold text-rose-700 bg-rose-50/50">${row.principal}</td>
+                      <td class="py-2.5 px-3 font-medium text-indigo-700">${row.vice_principal}</td>
+                      <td class="py-2.5 px-3 text-blue-700">${row.teacher_web}</td>
+                      <td class="py-2.5 px-3 text-emerald-700">${row.accountant}</td>
+                      <td class="py-2.5 px-3 text-amber-700">${row.receptionist}</td>
+                      <td class="py-2.5 px-3 text-purple-700">${row.librarian}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex justify-between items-center">
+              <span>Security Rule: Permissions are strictly enforced based on session role clearance.</span>
+              <button onclick="state.showRbacModal=false; render();" class="px-3 py-1 bg-slate-900 text-white rounded-lg text-xs font-semibold">
+                Acknowledge
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderToast(msg) {
+      return `
+        <div class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs flex items-center gap-2 animate-bounce">
+          <span>⚡</span>
+          <span>${msg}</span>
+        </div>
+      `;
+    }
+
+    // Initialize Standalone Engine
+    render();
+  </script>
+</body>
+</html>

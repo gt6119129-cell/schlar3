@@ -1,0 +1,748 @@
+# GOOGLE AI STUDIO MASTER IMPLEMENTATION PROMPT
+## SCHLAR Prompt 4 — Professional Teacher Web Portal + Mobile App Experience
+
+Act as a senior frontend architect, school-management domain specialist, teacher-workflow designer, mobile UX engineer, accessibility specialist, permission-system designer, and QA engineer.
+
+Continue my existing SCHLAR School Management SaaS frontend demo in the same Google AI Studio project.
+
+Your task is to inspect, complete, and improve the **Teacher Web Portal and Teacher Mobile App Experience**. Both experiences must be professional, intuitive, responsive, detailed, and genuinely interactive.
+
+This is not a request to generate screenshots, a static prototype, a collection of disconnected pages, or a generic teacher dashboard.
+
+Implement working screens and workflows in the existing application.
+
+---
+
+# 1. NON-NEGOTIABLE REQUIREMENTS
+
+1. Build and maintain both the Teacher Web Portal and Teacher Mobile App Experience.
+2. Do not build a Student role or a Student Portal.
+3. Do not add a Parent Web Portal as part of this task.
+4. Preserve the existing SCHLAR brand, theme system, shared application shell, centralized permissions, routing, demo data, and reusable components.
+5. Inspect the actual existing code before modifying it.
+6. Preserve working functionality and repair existing defects that directly affect Teacher workflows.
+7. Reuse existing data stores, permission utilities, navigation configuration, and UI components.
+8. Do not create duplicate teacher records, duplicate attendance stores, competing permission registries, or a second theme system.
+9. Keep this project frontend-only.
+10. Do not claim production authentication, backend APIs, real notifications, real email delivery, or cross-device synchronization.
+11. Do not remove important functionality merely to make the UI simpler.
+12. Test actual interactions and report any limitations honestly.
+
+## Core product principle
+
+**Simple enough for a first-time teacher, powerful enough for everyday classroom management.**
+
+The interface must reduce unnecessary steps while preserving detailed information, professional controls, appropriate permissions, and meaningful classroom workflows.
+
+---
+
+# 2. AUDIT THE EXISTING PROJECT FIRST
+
+Before editing code, inspect:
+
+- Project framework and file structure.
+- Existing Teacher Web and Mobile implementations.
+- Shared application shell and routing.
+- Teacher role configuration.
+- Existing permission registry and enforcement utilities.
+- Teacher profiles, classes, subjects, sections, rooms, and timetables.
+- Student and guardian relationships.
+- Attendance models and submission logic.
+- Assignment, examination, marks, and results models.
+- Existing theme and responsive design utilities.
+- Local persistence and shared demo-data mechanisms.
+- Existing forms, tables, dialogs, notification controls, and reusable components.
+
+Classify relevant features as:
+
+1. Working and verified.
+2. Implemented but not verified.
+3. Partially implemented.
+4. Missing.
+5. Broken.
+
+Identify existing defects before making changes. In particular, investigate any existing attendance bug where a teacher cannot mark an authorized subject or period because it differs from another subject or teacher assignment.
+
+Do not assume that a screen is functional because it renders.
+
+Then implement the missing or broken requirements without rebuilding working modules unnecessarily. Do not stop after providing an audit or plan.
+
+---
+
+# 3. BRAND AND PROFESSIONAL DESIGN
+
+Product: SCHLAR.
+
+Demo school: Greenfield International School.
+
+Reuse the existing global design system and saved palettes.
+
+Default Petrol & Copper palette:
+
+- Primary: #164E55
+- Secondary: #287B7A
+- Accent: #C47D54
+- Background: #F5F0E7
+- Surface: #FFFFFF
+
+Requirements:
+
+- Use the existing theme tokens and CSS variables.
+- Respect saved theme preferences and custom palettes.
+- Apply theme changes consistently across Teacher Web and Mobile.
+- Use a consistent type scale, spacing system, button hierarchy, iconography, and status indicators.
+- Use professional tables and forms on the web.
+- Use clear cards, readable lists, and touch-friendly controls on mobile.
+- Maintain accessible color contrast and visible focus indicators.
+- Avoid excessive decoration, unnecessary gradients, giant dashboard cards, duplicate metrics, and clutter.
+- Include useful loading, empty, validation, success, and error states.
+
+The product should look like credible school-management SaaS software used by a real teaching team.
+
+---
+
+# 4. TWO DISTINCT TEACHER EXPERIENCES
+
+Implement two distinct experiences using the same logical Teacher data source.
+
+## A. Teacher Web Portal
+
+Optimize for desktop and laptop classroom administration.
+
+Use:
+
+- Persistent professional left sidebar.
+- School identity and current role.
+- Teacher profile and notification access.
+- Search where useful.
+- Clear page title and breadcrumbs when appropriate.
+- Main content area that changes when a module is selected.
+- Detailed tables, filters, forms, and record views.
+- Clear navigation between lists and details.
+
+The sidebar must remain available while navigating between modules.
+
+Required navigation:
+
+- Overview.
+- My Classes.
+- Attendance.
+- Timetable.
+- Assignments.
+- Examinations.
+- Marks & Results.
+- Student Progress.
+- Announcements.
+- Profile & Settings.
+
+Use the existing routing and centralized navigation configuration.
+
+Every navigation item must open its actual workspace. No dead links or decorative buttons.
+
+## B. Teacher Mobile App Experience
+
+Optimize for phone-sized screens and quick classroom tasks.
+
+Use:
+
+- Compact top bar.
+- Teacher profile and notification access.
+- A clear selected class or context indicator where useful.
+- Bottom navigation: Home, Classes, Attendance, More.
+- More screen: Timetable, Assignments, Examinations, Marks & Results, Student Progress, Announcements, Settings.
+- Touch-friendly buttons and readable student lists.
+- Appropriate back navigation.
+- Safe-area spacing and layouts that do not hide content behind the bottom bar.
+
+Do not simply shrink the desktop sidebar.
+
+The mobile experience must provide the same authorized core workflows as the web experience, adapted for phones.
+
+Do not claim it is a native Android or iOS app if it is implemented as a mobile-friendly web experience.
+
+---
+
+# 5. TEACHER OVERVIEW
+
+Build a concise, data-driven Teacher dashboard.
+
+Display useful information such as:
+
+- Teacher name and profile.
+- Today's timetable.
+- Assigned classes and subjects.
+- Attendance sessions requiring completion.
+- Upcoming assignments and assessments.
+- Pending marks entry, where applicable.
+- Recent announcements.
+- Relevant student-progress alerts when supported by the demo data.
+
+Provide direct quick actions:
+
+- Open My Classes.
+- Mark Attendance.
+- View Timetable.
+- Create Assignment.
+- Open Marks & Results.
+
+Each action must open the corresponding functional workspace.
+
+Derive dashboard totals from actual records. Do not hardcode arbitrary numbers or display misleading alerts.
+
+Keep the dashboard a starting point, not a giant page containing every module.
+
+---
+
+# 6. MY CLASSES — DETAILED CLASSROOM WORKSPACE
+
+Create a professional class-management workspace.
+
+Display only classes, sections, and subjects assigned to the current teacher.
+
+Each class or section entry should show available information such as:
+
+- Class and section.
+- Subject.
+- Academic year.
+- Student count.
+- Relevant timetable details.
+- Upcoming assessment or assignment information.
+
+Support:
+
+- Search by class or section.
+- Filtering by assigned subject.
+- Selecting a class to open its detailed workspace.
+- A student roster with search and sorting.
+- Student detail views.
+- Clear return navigation.
+
+## Student records
+
+For authorized student records, show relevant available fields:
+
+- Student name and photo or initials.
+- Admission or student identifier.
+- Class and section.
+- Relevant guardian contact details only where authorized.
+- Attendance summary.
+- Assignment status where available.
+- Assessment and marks information within the teacher's permissions.
+- Relevant progress notes where supported.
+
+Do not fabricate student details.
+
+Do not expose unnecessary sensitive information to teachers who do not need it.
+
+Teachers must not access students outside their authorized classes by changing a URL or manipulating an identifier.
+
+---
+
+# 7. ATTENDANCE — PRIORITY WORKFLOW
+
+Implement a reliable, easy-to-use attendance workflow for Teacher Web and Mobile.
+
+Attendance must be linked to the correct class, section, subject, date, period, and authorized teaching session.
+
+## A. Select the attendance session
+
+Before marking attendance, clearly show:
+
+- Class.
+- Section.
+- Subject.
+- Date.
+- Period or session.
+- Assigned teacher.
+- Current attendance status.
+
+Populate available options from actual class, subject, timetable, and teaching-assignment records.
+
+Do not present a teacher with a class or subject they are not authorized to teach.
+
+If the teacher has multiple authorized subjects or sessions, allow the correct one to be selected.
+
+## B. Attendance status
+
+Use the required symbols:
+
+- Present: ✓
+- Absent: X
+
+Display these symbols clearly, with text labels or accessible descriptions where appropriate.
+
+Do not rely on color alone.
+
+## C. Teacher Web attendance layout
+
+For workflows where attendance is recorded across multiple periods, provide a table in which:
+
+- Each student occupies one row.
+- Each relevant period occupies one column.
+- Each student-period cell shows its current attendance state.
+- The teacher can see present and absent students in the same workspace.
+- The selected class, date, and relevant sessions remain visible.
+
+Example layout:
+
+| Student | Period 1 | Period 2 | Period 3 |
+|---|---|---|---|
+| Student A | ✓ | X | ✓ |
+| Student B | ✓ | ✓ | ✓ |
+
+This is an illustration of the layout only. Generate the actual rows, columns, periods, and statuses from the existing data model.
+
+If attendance is recorded per subject and period, preserve those relationships. Do not combine separate sessions into a single ambiguous record.
+
+## D. Teacher Mobile attendance layout
+
+Use a phone-friendly workflow:
+
+1. Select an authorized class and session.
+2. Review the student list.
+3. Mark each student Present or Absent.
+4. See each selected status immediately.
+5. Review the completed attendance before submission.
+6. Submit and receive clear feedback.
+
+Do not require excessive horizontal scrolling on a phone.
+
+## E. Critical attendance bug prevention
+
+Investigate and eliminate the following failure mode:
+
+A teacher who is authorized to teach and take attendance for a subject must not be blocked merely because that subject differs from another teacher's subject or from a default subject selected elsewhere in the application.
+
+Use the actual teacher assignment and selected teaching session to validate authorization.
+
+Do not hardcode a single permitted subject.
+
+Do not incorrectly validate every attendance operation against another subject's assignment.
+
+Do not weaken permissions to solve the bug. Correct the session and assignment relationship instead.
+
+## F. Submission and editing
+
+- Validate the selected session.
+- Validate the student roster against the class.
+- Ensure every submitted status is valid.
+- Prevent duplicate records for the same student and session.
+- Prevent unauthorized session submissions.
+- Provide a review step where appropriate.
+- Show success and error feedback.
+- Support corrections only when the teacher has the required edit permission and the workflow permits changes.
+- Preserve existing attendance records.
+- Handle previously submitted sessions clearly.
+
+Do not silently overwrite existing attendance.
+
+Do not count missing records as absent.
+
+Do not allow parents or other unauthorized roles to modify teacher attendance.
+
+---
+
+# 8. TIMETABLE
+
+Create a dedicated Teacher timetable workspace.
+
+Support:
+
+- Today's timetable.
+- Weekly timetable.
+- Day selection.
+- Class and section.
+- Subject.
+- Start and end times.
+- Room or location where available.
+- Period numbers.
+- Relevant break periods.
+- Upcoming teaching session.
+
+Use actual assigned timetable records.
+
+Clearly distinguish scheduled sessions from completed or historical sessions where supported.
+
+Show an appropriate empty state when no timetable entries exist.
+
+Do not invent teaching periods or create timetable conflicts by duplicating records.
+
+The web version should provide a detailed schedule view. The mobile version should prioritize today's classes and a readable day-by-day view.
+
+---
+
+# 9. ASSIGNMENTS
+
+Create a functional assignment workspace.
+
+## Assignment list
+
+Show relevant available fields:
+
+- Title.
+- Subject.
+- Class and section.
+- Assigned date.
+- Due date.
+- Description preview.
+- Relevant student-submission status if supported.
+
+Provide useful filters, including class, subject, due date, and status where appropriate.
+
+## Create and edit
+
+Authorized teachers must be able to create and edit assignments for their assigned classes and subjects.
+
+Use validated forms with:
+
+- Assignment title.
+- Description and instructions.
+- Class and section.
+- Subject.
+- Assigned date.
+- Due date.
+- Available attachment or resource metadata, if supported.
+
+Validate required fields and ensure the due date is valid.
+
+Do not create assignments for unauthorized classes or subjects.
+
+## Assignment details
+
+Selecting an assignment must open a dedicated detail view with its full information.
+
+Where the existing model supports student submissions, show accurate submission information and relevant counts.
+
+Do not invent submission records or imply that a student submitted work when no record exists.
+
+If real file upload is unavailable, implement only the supported demo attachment behavior and label it honestly.
+
+---
+
+# 10. EXAMINATIONS
+
+Create a professional examination workspace for assigned classes and subjects.
+
+Show available information such as:
+
+- Examination name.
+- Exam type.
+- Subject.
+- Class and section.
+- Schedule.
+- Maximum marks.
+- Relevant instructions.
+- Marks-entry status.
+
+Teachers must only access examination records within their assigned permissions.
+
+Do not grant unrestricted exam setup or result-publication rights merely because the user has the Teacher role.
+
+Reuse the centralized permission system and existing examination workflows.
+
+If an examination workflow is not yet implemented, create a clearly identified incomplete or unavailable state instead of presenting a fake functional interface.
+
+---
+
+# 11. MARKS & RESULTS
+
+Implement a detailed marks-entry and results workspace.
+
+## Marks entry
+
+Where authorized, allow the teacher to:
+
+- Select an assigned class and subject.
+- Select an authorized examination.
+- View the appropriate student roster.
+- Enter marks for each student.
+- See maximum marks and valid scoring rules.
+- Validate numeric input and permissible ranges.
+- Save valid marks to the existing demo-data store.
+- Edit marks only when authorized and allowed by the workflow.
+
+Reject invalid marks, including values outside the permitted scoring range.
+
+Show validation messages next to the relevant field.
+
+## Results visibility
+
+- Show only records the teacher is authorized to view.
+- Distinguish draft, submitted, approved, and published states only when those states exist in the data model.
+- Do not expose unpublished results to Parent views.
+- Do not give teachers automatic permission to publish results.
+- Respect approval and publication workflows.
+
+Use consistent marks and student relationships.
+
+Do not fabricate grades, ranks, or performance statistics.
+
+---
+
+# 12. STUDENT PROGRESS
+
+Create a dedicated student-progress workspace.
+
+For authorized students, display relevant information such as:
+
+- Attendance summary.
+- Subject-wise performance where available.
+- Assessment history.
+- Assignment completion or submission data.
+- Relevant teacher notes where supported.
+- Trends derived from actual recorded data.
+
+Use understandable summaries instead of unsupported performance scores.
+
+Do not create arbitrary risk scores or label students as weak, poor, or problematic without an established and appropriate data basis.
+
+Allow teachers to open a detailed student record and return to the progress list.
+
+Respect the teacher's assigned-class and subject restrictions.
+
+---
+
+# 13. ANNOUNCEMENTS
+
+Implement an announcements screen using the existing shared announcement system.
+
+Teachers may view school announcements and create or manage teacher announcements only where existing permissions allow it.
+
+Support:
+
+- Announcement title.
+- Message.
+- Relevant audience or class.
+- Publication date.
+- Detail view.
+- Validation and confirmation for authorized actions.
+
+Do not imply that a locally created announcement has been delivered to real users.
+
+Do not bypass publication permissions.
+
+---
+
+# 14. PROFILE & SETTINGS
+
+Provide a teacher profile and settings workspace.
+
+Show available teacher information, such as:
+
+- Name.
+- Profile photo or initials.
+- Teacher identifier.
+- Assigned subjects and classes.
+- Department or designation where available.
+- Authorized contact details.
+- Existing settings.
+
+Reuse existing profile and theme utilities.
+
+Allow only supported, authorized profile edits.
+
+Do not allow teachers to edit their official staff record, salary, employment status, or HR documents unless an explicit permission and workflow allow it.
+
+Do not expose nonfunctional security or account-management controls as though they work.
+
+---
+
+# 15. CENTRALIZED PERMISSIONS
+
+Reuse the existing centralized SCHLAR permission registry.
+
+Do not create a second permission system.
+
+Enforce authorization in:
+
+- Navigation.
+- Screen access.
+- Class and subject selectors.
+- Student record selectors.
+- Attendance session selection.
+- Attendance submission.
+- Assignment creation and editing.
+- Marks entry and editing.
+- Examination access.
+- Announcement management.
+- Data selectors and mutation handlers.
+
+Use role, module, action, record scope, and workflow state where applicable.
+
+Critical restrictions:
+
+- Teachers can only access assigned classes and subjects.
+- Teachers cannot modify unauthorized attendance sessions.
+- Teachers cannot edit marks without the required permission.
+- Teachers cannot publish results without explicit publication permission.
+- Teachers cannot access unrelated student records.
+- Unknown or unsupported actions must be denied.
+
+Do not rely on hiding buttons.
+
+When a teacher attempts an unauthorized operation, prevent the change and provide a clear, appropriate message.
+
+Frontend authorization is suitable for the demo but is not a replacement for production server-side security.
+
+---
+
+# 16. SHARED DATA BETWEEN WEB AND MOBILE
+
+Teacher Web and Teacher Mobile must use the same logical Teacher data source.
+
+Do not build two independent sets of teacher records or attendance data.
+
+Where the existing local store supports it:
+
+- Attendance recorded in Teacher Web must appear in Teacher Mobile.
+- Assignments created in Teacher Web must appear in Teacher Mobile.
+- Valid marks changes must appear consistently in both experiences.
+- Timetable updates must be reflected in both experiences.
+- Shared notifications and relevant profile information must remain consistent.
+
+Use the existing state-management and persistence utilities.
+
+Handle malformed or outdated stored data safely.
+
+Do not overwrite unrelated data.
+
+Do not claim cross-device or cross-user synchronization without a backend.
+
+---
+
+# 17. PROFESSIONAL USER EXPERIENCE
+
+The interface must be intuitive for teachers with different levels of technical experience.
+
+Use:
+
+- Familiar school terminology.
+- Clear labels.
+- Predictable navigation.
+- Sensible defaults.
+- Short instructions at the point of need.
+- Search and filters where useful.
+- Clear form validation.
+- Confirmation for consequential changes.
+- Success and error feedback.
+- Readable tables.
+- Useful empty states.
+- Consistent status indicators.
+- Accessible controls.
+- Visible keyboard focus.
+- Touch-friendly mobile controls.
+- Appropriate loading states.
+- Clear navigation back to lists.
+
+Avoid:
+
+- Giant dashboards.
+- Extremely long pages containing every module.
+- Duplicate student information.
+- Unnecessary nested navigation.
+- Buttons that do nothing.
+- Excessive modal dialogs.
+- Fake charts and metrics.
+- Overly complicated attendance workflows.
+- Tiny text on phones.
+- Essential information hidden behind unexplained icons.
+
+Use dedicated module pages and detail views. Keep the most important actions easy to find while preserving advanced functionality.
+
+---
+
+# 18. DATA INTEGRITY AND LOCAL PERSISTENCE
+
+Keep the demo data connected and coherent.
+
+Use existing records for:
+
+- Teachers.
+- Classes and sections.
+- Subjects.
+- Students.
+- Timetables.
+- Teaching assignments.
+- Attendance sessions.
+- Assignments.
+- Examinations.
+- Marks.
+- Results.
+- Announcements.
+
+Use stable identifiers and validate relationships before saving changes.
+
+Do not create orphaned records.
+
+Do not silently reset or replace existing demo data.
+
+If a related record is missing, display an understandable validation or empty state rather than inventing a relationship.
+
+---
+
+# 19. TEST THE ACTUAL APPLICATION
+
+After implementation, run the available checks and test the real interactions.
+
+At minimum, verify:
+
+1. Teacher Web opens the correct workspace.
+2. Teacher Mobile opens the phone-first experience.
+3. Web navigation works and preserves the shared shell.
+4. Mobile bottom navigation and More menu work.
+5. Only assigned classes and subjects appear.
+6. Student details open and return navigation works.
+7. The correct attendance session can be selected.
+8. Present ✓ and Absent X are visible and distinguishable.
+9. Teacher Web supports student rows and period columns where required.
+10. Teacher Mobile supports practical attendance marking without excessive horizontal scrolling.
+11. Attendance submission validates the selected class, subject, date, period, and roster.
+12. An authorized teacher can mark an authorized subject without an unrelated-subject validation bug.
+13. Duplicate attendance records are prevented appropriately.
+14. Unauthorized attendance changes are denied.
+15. Timetable entries match actual assignments.
+16. Assignment creation and editing work within permissions.
+17. Marks validation rejects invalid scores.
+18. Unauthorized marks editing and result publication are blocked.
+19. Student-progress views use actual records.
+20. Web and Mobile reflect changes from the shared local data source.
+21. Theme changes work correctly.
+22. Empty or invalid data does not crash the application.
+23. All role experiences outside this task remain functional.
+24. No dead buttons, broken routes, unintended data resets, or new console errors are introduced.
+
+Test multiple authorized classes and subjects. Do not test attendance using only one subject and assume the bug is fixed.
+
+If runtime or browser testing is unavailable, state which checks were performed and which could not be verified.
+
+---
+
+# 20. FINAL DELIVERY REPORT
+
+After implementation, report:
+
+1. Existing Teacher features discovered.
+2. Features preserved.
+3. Features added or repaired.
+4. Files created or modified.
+5. Teacher Web workflows implemented.
+6. Teacher Mobile workflows implemented.
+7. Attendance validation and bug fixes.
+8. Permission and record-scope protections.
+9. Shared-data and persistence behavior.
+10. Tests actually executed and their results.
+11. Remaining gaps, limitations, and unverified behavior.
+
+Do not report a feature as complete merely because a screen exists.
+
+## FINAL ACCEPTANCE CRITERIA
+
+The final SCHLAR project must contain two professional, user-friendly Teacher experiences:
+
+**Teacher Web Portal:** Detailed classroom management, class and student records, efficient attendance tables, assignments, timetable, marks, examinations, and progress workflows.
+
+**Teacher Mobile App Experience:** A phone-first interface for today's timetable, assigned classes, student lists, attendance, assignments, marks, and other authorized teacher tasks.
+
+Both experiences must share coherent demo data, respect centralized permissions, preserve existing working functionality, and provide real interactions.
+
+**Inspect first. Preserve working code. Fix actual defects. Implement missing functionality. Test real workflows. Report results honestly.**

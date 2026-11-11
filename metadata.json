@@ -1,0 +1,6 @@
+{
+  "name": "SCHLAR — Greenfield International School",
+  "description": "Comprehensive multi-role school management portal and mobile companion for Greenfield International School with 10 distinct approved role experiences, 12-palette design system, shared persistent mock state, and live CRUD workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

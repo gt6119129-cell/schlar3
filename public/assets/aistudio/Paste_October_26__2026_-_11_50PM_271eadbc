@@ -1,0 +1,993 @@
+# SCHLAR — PROMPT 8: RECEPTIONIST / FRONT OFFICE WORKSPACE
+## Complete Implementation | Professional UI | User-Friendly Workflows | Integrated Demo Functionality
+
+You are continuing development of **SCHLAR**, an existing school-management web and mobile frontend project.
+
+Implement Prompt 8: the **Receptionist / Front Office workspace**.
+
+This is an extension of the existing application, not a new application. Prompts 1–7 have already established the foundation and multiple role workspaces. Inspect the current project, understand its implementation, and build this workspace using the existing architecture.
+
+The goal is to create a professional, efficient, intuitive front-office system that helps school reception staff manage visitors, enquiries, appointments, calls, incoming requests, student-related front-office services, and daily reception operations.
+
+The workspace must be genuinely interactive. Forms must validate, buttons must perform their stated actions, records must update, search and filters must work, and relevant dashboard statistics must reflect the underlying demo data.
+
+**Core SCHLAR principle: “Simple enough for a first-time user, powerful enough for a real school.”**
+
+Simplify navigation and workflows without removing important capabilities, records, permissions, or operational controls.
+
+---
+
+# 1. CRITICAL PROJECT PRESERVATION RULES
+
+Before modifying code, inspect the existing codebase.
+
+Review:
+- Existing folder structure, framework, routing, components, and application entry points.
+- Role-selection page and current role-workspace navigation.
+- Shared sidebar, header, profile, notification, theme, and layout components.
+- Existing form controls, tables, search, filters, dialogs, and feedback components.
+- Current demo-data models and persistence mechanism.
+- Student, parent, teacher, staff, class, section, attendance, fee, transport, and timetable records.
+- Existing authentication simulation and centralized role permissions.
+- Features already implemented in Prompts 1–7.
+
+Follow these mandatory rules:
+
+1. Preserve all existing working features and role workspaces.
+2. Do not rebuild the entire application.
+3. Do not change SCHLAR branding, role names, or the established role-selection flow.
+4. Do not add Student or Super Admin as new school-management roles.
+5. Do not create duplicate student, parent, or staff records when shared records already exist.
+6. Do not replace the existing design system with an unrelated design.
+7. Do not introduce a separate backend or unnecessary dependencies.
+8. Do not implement fake interactions that only change button appearance without performing the intended action.
+9. Do not claim that emails, SMS messages, phone calls, or external notifications have been delivered unless an actual integration exists.
+10. Do not expose confidential student, staff, or parent information to visitors or unauthorized roles.
+11. Do not erase existing demo data when initializing new front-office features.
+12. Do not remove existing permission restrictions for convenience.
+
+Reuse existing components and data structures wherever possible. If a suitable feature already exists, integrate with or improve it rather than duplicating it.
+
+---
+
+# 2. DESIGN AND USER EXPERIENCE
+
+Follow the existing SCHLAR design system and theme configuration.
+
+If the existing project uses the established Petrol & Copper palette, retain:
+- Primary: #164E55
+- Secondary: #287B7A
+- Accent: #C47D54
+- Background: #F5F0E7
+- Surface: #FFFFFF
+
+Use the active configured palette instead of hard-coding colors if theme customization already exists.
+
+## Design goals
+
+Create a polished school-management SaaS interface with:
+- A clear page hierarchy.
+- A compact, useful dashboard.
+- Consistent spacing, typography, buttons, cards, and tables.
+- A professional left sidebar that follows existing SCHLAR conventions.
+- Searchable, filterable records.
+- Simple forms with clear labels and sensible defaults.
+- Useful empty states and clear next actions.
+- Confirmation dialogs for consequential operations.
+- Helpful success, warning, and validation messages.
+- Responsive layouts for desktop, tablet, and mobile.
+- Keyboard accessibility and visible focus states.
+- Readable status labels and appropriate icons.
+
+Avoid:
+- Overcrowded dashboards.
+- Excessive decorative cards.
+- Huge forms that could be split into logical sections.
+- Unnecessary animation.
+- Fake charts or invented statistics.
+- Buttons without functional behavior.
+- Repeating the same information in multiple places without a clear reason.
+
+Make the most frequent front-office actions easy to access from the dashboard.
+
+---
+
+# 3. FRONT-OFFICE DASHBOARD
+
+Create a useful dashboard showing current reception activity.
+
+Include metrics derived from actual demo records:
+- Visitors currently checked in.
+- Total visitors today.
+- Expected visitors today.
+- Pending enquiries.
+- Follow-ups due today.
+- Appointments scheduled today.
+- Unresolved reception requests.
+- Recent check-ins and check-outs.
+- Recent enquiries.
+- Upcoming appointments.
+- Important notices or alerts authorized for the receptionist.
+
+Each metric should link to the appropriate record list or filtered view.
+
+Do not invent numbers just to make the dashboard look populated. Use real demo records or provide a clear empty state.
+
+Include a **Quick Actions** section with actions such as:
+- Register Visitor.
+- Check In Visitor.
+- Check Out Visitor.
+- Record New Enquiry.
+- Schedule Appointment.
+- Log a Phone Call.
+- Create Reception Request.
+- Search Student.
+- Search Staff.
+- View Today's Activity.
+
+Each quick action must open the relevant form, page, or dialog and complete a meaningful workflow.
+
+Include a useful date indicator and distinguish current-day activity from historical records.
+
+---
+
+# 4. VISITOR MANAGEMENT
+
+Implement a complete visitor-management workflow suitable for a school reception.
+
+## 4.1 Visitor registration
+
+Create a visitor registration form with appropriate fields:
+- Visitor ID, generated uniquely.
+- Full name.
+- Visitor category.
+- Organization, if applicable.
+- Contact number.
+- Email, if provided.
+- Purpose of visit.
+- Person or department to visit.
+- Appointment reference, if applicable.
+- Number of visitors in the group, if relevant.
+- Vehicle registration, if needed by school policy.
+- Visitor notes.
+- Registration date and time.
+- Check-in status.
+
+Possible visitor categories:
+- Parent or guardian.
+- Prospective parent.
+- Vendor or supplier.
+- Delivery personnel.
+- Guest or invited speaker.
+- Service provider.
+- Former student.
+- Other.
+
+Allow authorized staff to add a visitor, validate required fields, and save the record.
+
+Do not require unnecessary personal information.
+
+If an existing parent or staff record matches the visitor, allow the receptionist to reference that record rather than creating a duplicate identity.
+
+## 4.2 Visitor check-in
+
+Implement a clear check-in workflow:
+1. Search for an existing visitor or create a new visitor record.
+2. Enter or confirm the purpose of the visit.
+3. Select the staff member or department being visited.
+4. Review any appointment information.
+5. Confirm check-in.
+6. Record the check-in date and time.
+7. Update the visitor's current status.
+8. Display a confirmation.
+
+Enforce:
+- A visitor cannot be checked in twice for the same active visit.
+- Required information must be valid.
+- The visit must reference an existing staff member or department when the project supports those records.
+- An appointment should be linked when relevant, but walk-in visitors must still be supported.
+
+## 4.3 Visitor check-out
+
+Provide a list of visitors who are currently checked in.
+
+Allow the receptionist to:
+- Search for a visitor.
+- Open the active visit.
+- Review check-in information.
+- Confirm check-out.
+- Record the check-out time.
+- Add a permitted closing note.
+- Update the visit status.
+
+Prevent duplicate check-outs and invalid visit-state transitions.
+
+After check-out, the visitor should no longer appear in the active-visitor list.
+
+## 4.4 Visitor history
+
+Provide:
+- Visitor directory.
+- Active visitors.
+- Today's visitors.
+- Historical visits.
+- Visit-purpose filters.
+- Visitor-category filters.
+- Staff or department filters.
+- Date-range filters.
+- Search by visitor name, ID, or permitted contact fields.
+- Individual visitor detail view.
+- Visit history.
+
+Clearly distinguish a visitor's identity record from individual visits. A returning visitor may have multiple historical visits.
+
+Do not overwrite previous visit details when the same person returns.
+
+## 4.5 Visitor badges or passes
+
+If suitable for the existing frontend, provide a printable visitor pass containing only appropriate information:
+- School name.
+- Visitor name.
+- Visitor ID.
+- Person or department being visited.
+- Visit date.
+- Check-in time.
+- Pass validity or status.
+
+Use the existing print capabilities if available.
+
+Do not claim to have printed a physical badge or integrated with badge hardware. A frontend print layout is sufficient for the demo.
+
+---
+
+# 5. ENQUIRY AND ADMISSION LEAD MANAGEMENT
+
+Implement a complete front-office enquiry workflow.
+
+This is for prospective families and general school enquiries. It must not replace or duplicate a dedicated admissions module if one already exists.
+
+## 5.1 New enquiry form
+
+Support:
+- Enquiry ID.
+- Enquiry date.
+- Parent or guardian name.
+- Prospective student's name, if provided.
+- Contact number.
+- Email, if provided.
+- Academic year.
+- Interested class or grade.
+- Enquiry source.
+- Enquiry category.
+- Enquiry details.
+- Assigned staff member, if supported.
+- Follow-up date.
+- Current status.
+- Internal notes with appropriate access controls.
+
+Possible enquiry sources:
+- Walk-in.
+- Phone.
+- Website.
+- Referral.
+- School event.
+- Email.
+- Other.
+
+Possible statuses:
+- New.
+- Contacted.
+- Follow-up Required.
+- Visit Scheduled.
+- Information Shared.
+- Converted.
+- Closed.
+
+Adapt the status model if an admissions module already defines compatible statuses.
+
+## 5.2 Enquiry directory
+
+Build a searchable enquiry list with:
+- Enquiry ID.
+- Parent or guardian.
+- Prospective student.
+- Interested class.
+- Contact information according to permissions.
+- Source.
+- Assigned staff member.
+- Follow-up date.
+- Current status.
+- Last activity.
+
+Support:
+- Search.
+- Date filters.
+- Class filters.
+- Source filters.
+- Status filters.
+- Assignment filters.
+- Sorting and pagination where appropriate.
+
+## 5.3 Follow-up workflow
+
+Allow authorized staff to:
+- Open an enquiry.
+- Add a follow-up note.
+- Record the follow-up date.
+- Change the status.
+- Assign or reassign responsibility.
+- Review the activity history.
+- Mark an enquiry closed with an appropriate reason.
+- Link a scheduled visit or appointment.
+
+Show overdue and upcoming follow-ups clearly.
+
+Do not automatically mark an enquiry as converted simply because a receptionist schedules an appointment.
+
+If the project already has an admissions workflow, link or hand off the enquiry to it using the existing data model.
+
+Do not create a new student admission record unless the existing admission process authorizes that transition.
+
+## 5.4 Enquiry conversion
+
+Where the project supports admission conversion, provide a controlled action to move an eligible enquiry into the existing admission workflow.
+
+Before conversion:
+- Check whether the enquiry is already converted.
+- Avoid duplicate prospective-student or admission records.
+- Carry over relevant permitted information.
+- Confirm the action with the user.
+- Record the conversion in the activity history.
+
+If no admission module exists, retain the enquiry as a demo lead and clearly label the conversion or hand-off capability as unavailable. Do not invent a completed admission process.
+
+---
+
+# 6. APPOINTMENTS AND SCHOOL VISITS
+
+Create an appointment-management section.
+
+Each appointment should support:
+- Appointment ID.
+- Visitor or parent reference, when applicable.
+- Visitor name.
+- Staff member or department.
+- Appointment purpose.
+- Date.
+- Start time.
+- End time or duration.
+- Contact information, according to permissions.
+- Appointment status.
+- Notes.
+- Created-by information, if available.
+
+Support:
+- Schedule an appointment.
+- Edit an appointment.
+- Reschedule.
+- Cancel.
+- Mark as completed.
+- Mark as missed or no-show.
+- Search and filter appointments.
+- View today's schedule.
+- View upcoming appointments.
+- Link an appointment to a visitor check-in.
+- View the appointment's related visitor history.
+
+Validate:
+- Required fields.
+- Valid date and time.
+- End time after start time.
+- Duplicate or overlapping appointments for the same staff member, where the scheduling model supports this check.
+- Invalid references.
+
+Do not silently allow conflicting appointments without warning.
+
+If the application has an existing calendar component, reuse it.
+
+If there is no calendar component, provide a simple day view and list view instead of introducing unnecessary dependencies.
+
+Appointments must remain demo records unless a real external calendar integration exists.
+
+---
+
+# 7. PHONE CALL AND COMMUNICATION LOG
+
+Implement a reception call log for incoming and outgoing school-related calls.
+
+Each record may include:
+- Call ID.
+- Date and time.
+- Incoming or outgoing.
+- Caller or recipient name.
+- Contact number, if appropriate.
+- Caller category.
+- Related student, parent, staff member, enquiry, or department, if applicable.
+- Call purpose.
+- Summary.
+- Assigned staff member.
+- Follow-up required.
+- Follow-up date.
+- Status.
+
+Support:
+- Log a new call.
+- Edit a permitted call record.
+- Search and filter call logs.
+- Link a call to an existing enquiry or school record.
+- Mark a follow-up complete.
+- View call history.
+- Display overdue call follow-ups.
+
+Do not automatically create a call record merely because the receptionist opens the form.
+
+Do not claim to make or receive actual phone calls. This is a call-recording feature, not a telephony integration.
+
+Protect sensitive notes and contact information according to existing permissions.
+
+---
+
+# 8. GENERAL RECEPTION REQUESTS
+
+Create a simple workflow for requests received at the front desk.
+
+Examples:
+- Request to meet a teacher.
+- Request to contact a department.
+- Request for a document or certificate.
+- Request for information.
+- Parent complaint or concern.
+- Lost-and-found enquiry.
+- Maintenance request reported at reception.
+- Other school-related request.
+
+Each request should include:
+- Request ID.
+- Date and time.
+- Request category.
+- Requester reference, if applicable.
+- Summary.
+- Detailed description, where needed.
+- Assigned department or staff member.
+- Priority.
+- Status.
+- Due date or follow-up date, if relevant.
+- Resolution note.
+- Activity history.
+
+Possible statuses:
+- New.
+- Assigned.
+- In Progress.
+- Waiting for Response.
+- Resolved.
+- Closed.
+
+Allow authorized users to:
+- Create a request.
+- Assign or reassign it.
+- Update its status.
+- Add a follow-up note.
+- Record resolution.
+- Review its history.
+- Filter by category, priority, department, and status.
+
+Use sensible defaults. Avoid an unnecessarily complicated ticketing system.
+
+If the project already has a complaint, maintenance, or helpdesk module, integrate with it instead of duplicating it.
+
+Requests involving sensitive student information must be restricted to authorized staff.
+
+---
+
+# 9. STUDENT, PARENT, AND STAFF LOOKUP
+
+The receptionist needs to find existing school records quickly without receiving unrestricted access to all administrative information.
+
+Implement a unified search or lookup page using the existing SCHLAR data.
+
+## Student lookup
+
+Show only information authorized for the Receptionist role, such as:
+- Student name and ID.
+- Class and section.
+- Student status.
+- Relevant school contact or office information.
+- Parent or guardian contact reference, where permitted.
+- Approved front-office notices or relevant information.
+
+## Parent or guardian lookup
+
+Show:
+- Parent or guardian name.
+- Existing linked student references, where permitted.
+- Authorized contact details.
+- Relevant appointment or enquiry history.
+- Other front-office information that the role is allowed to see.
+
+## Staff lookup
+
+Show:
+- Staff name and staff ID.
+- Department or designation.
+- Work contact information, where permitted.
+- Availability or appointment-related information only if it exists and is authorized.
+
+## Search behavior
+
+Support search by:
+- Name.
+- Existing school ID.
+- Class or section, where appropriate.
+- Contact number, if authorized.
+
+Requirements:
+- Reuse existing school records.
+- Do not duplicate records.
+- Do not expose marks, detailed attendance history, financial account information, medical details, confidential HR information, or private disciplinary records unless explicitly permitted by the established permission system.
+- Do not allow the receptionist to edit unrelated student, parent, or staff records.
+- Use existing profile pages and links where appropriate.
+- Handle ambiguous matches by displaying enough authorized information to distinguish the records safely.
+
+If the data model does not include a field, do not invent it.
+
+---
+
+# 10. FRONT-OFFICE DOCUMENT AND CERTIFICATE REQUESTS
+
+If the existing application has document or certificate workflows, integrate with them.
+
+Potential request types include:
+- Bonafide certificate.
+- Transfer certificate enquiry.
+- Study certificate enquiry.
+- Fee receipt copy request.
+- General school-document request.
+- Other permitted document requests.
+
+Provide a request record with:
+- Request ID.
+- Requester reference.
+- Student reference, where applicable.
+- Document type.
+- Request date.
+- Assigned department.
+- Status.
+- Follow-up date.
+- Notes and resolution.
+
+Possible statuses:
+- Submitted.
+- Under Review.
+- Referred to Department.
+- Ready for Collection.
+- Completed.
+- Rejected, with an appropriate reason.
+
+Important restrictions:
+- The receptionist must not automatically issue an official certificate simply by changing a status.
+- Document generation and approval must remain with the authorized role or existing workflow.
+- Do not fabricate official signatures, approval, or verification.
+- Do not claim that a document has been printed, emailed, or delivered unless that action actually occurs.
+- If no document workflow exists, implement a request-tracking feature rather than pretending official certificate generation is available.
+
+---
+
+# 11. NOTICES AND INTERNAL HAND-OFFS
+
+If SCHLAR already has a notification or announcement system, reuse it for permitted front-office updates.
+
+Provide useful visibility for:
+- Scheduled appointments.
+- Visitor arrivals.
+- Follow-ups due.
+- Unassigned reception requests.
+- Requests awaiting department response.
+- Important reception alerts.
+
+Allow a receptionist to record that a visitor has arrived and link the arrival to the relevant appointment.
+
+Where appropriate, show a status such as:
+- Arrival recorded.
+- Staff member notified in the demo.
+- Awaiting response.
+- Visitor departed.
+
+Only use “sent,” “delivered,” or similar wording when the corresponding action genuinely occurred.
+
+If notification delivery is simulated, label it as a demo notification.
+
+Do not create a new notification framework if one already exists.
+
+---
+
+# 12. DAILY REGISTER AND RECEPTION REPORTS
+
+Provide a reporting section for everyday front-office work.
+
+Include reports such as:
+- Daily visitor register.
+- Current visitors.
+- Visitor check-in and check-out history.
+- Visitor categories and purposes.
+- Upcoming appointments.
+- Appointment completion and no-show records.
+- Enquiries by source.
+- Enquiries by status and interested class.
+- Follow-ups due and overdue.
+- Call log.
+- Outstanding reception requests.
+- Document-request status.
+- Daily activity summary.
+
+Provide filters such as:
+- Date or date range.
+- Status.
+- Category.
+- Assigned staff member.
+- Department.
+- Enquiry source, where relevant.
+
+Ensure all totals are calculated from actual records.
+
+Reuse existing printing or export functionality if available.
+
+If the application supports only printing, do not pretend that Excel or PDF files were generated. If export functionality is not available, make the limitation clear and implement a useful on-screen report.
+
+Reports must respect role permissions and must not expose sensitive notes or contact details unnecessarily.
+
+---
+
+# 13. NAVIGATION AND INFORMATION ARCHITECTURE
+
+Follow the current SCHLAR sidebar and nested navigation patterns.
+
+Use a clear structure similar to the following, adapting it to the existing application.
+
+**Overview**
+- Dashboard
+
+**Visitor Management**
+- Register Visitor
+- Active Visitors
+- Visitor Directory
+- Visit History
+
+**Enquiries**
+- New Enquiry
+- Enquiry Directory
+- Follow-ups
+
+**Appointments**
+- Today's Appointments
+- Appointment Calendar or Schedule
+- Appointment History
+
+**Communication**
+- Call Log
+- Follow-ups
+- Reception Requests
+
+**School Directory**
+- Student Lookup
+- Parent Lookup
+- Staff Lookup
+
+**Document Requests**
+- Request Register
+- Pending Requests
+
+**Reports**
+- Daily Register
+- Visitor Reports
+- Enquiry Reports
+- Appointment Reports
+- Reception Activity
+
+Requirements:
+- Do not show empty navigation items.
+- Do not make every action a separate top-level menu item if it can be grouped sensibly.
+- Keep high-frequency tasks easy to reach.
+- Reuse the current sidebar style.
+- Ensure selecting a menu item opens the correct page or workspace.
+- Maintain correct active-menu highlighting.
+- Ensure browser back and forward behavior remains consistent with the existing routing model.
+
+---
+
+# 14. ROLE PERMISSIONS AND PRIVACY
+
+Integrate all front-office actions with the existing centralized permission system.
+
+Do not rely solely on hiding a button. Validate permissions at the point where the action changes application state.
+
+Receptionist permissions should be limited to the functions required for front-office work.
+
+Possible permitted actions:
+- Register and check in visitors.
+- Check out visitors.
+- Record enquiries.
+- Schedule and manage appointments.
+- Log calls.
+- Create and track reception requests.
+- Look up authorized student, parent, and staff information.
+- Track document requests.
+- View permitted front-office reports.
+
+Restricted actions must remain restricted, including:
+- Editing academic marks or classroom attendance.
+- Modifying student admissions without the appropriate workflow.
+- Changing school-wide fees or recording unrestricted financial transactions.
+- Editing confidential HR records.
+- Changing transport assignments without explicit permission.
+- Issuing official certificates without approval.
+- Viewing sensitive student or staff records without authorization.
+- Changing role permissions or system-wide settings.
+
+Use the project's existing permission naming conventions.
+
+If the permissions system supports configurable permissions, add the relevant front-office permissions without resetting existing role settings.
+
+Test unauthorized actions, including direct action paths where feasible, rather than checking only whether buttons are visible.
+
+---
+
+# 15. DATA INTEGRITY, HISTORY, AND PERSISTENCE
+
+Use the current SCHLAR state and persistence architecture.
+
+Maintain stable references and relationships among:
+- Visitors and their individual visits.
+- Visitors and appointments.
+- Visitors and staff or departments.
+- Enquiries and prospective students.
+- Enquiries and follow-up records.
+- Calls and related school records.
+- Reception requests and their assigned departments.
+- Document requests and existing student records.
+- Reception activity and the current user, where supported.
+
+Requirements:
+- Use unique IDs for visits, enquiries, appointments, calls, and requests.
+- Validate all required fields.
+- Prevent duplicate or contradictory records.
+- Maintain visit and enquiry histories.
+- Preserve past visits when a visitor returns.
+- Keep statuses consistent.
+- Avoid silent destructive edits.
+- Ensure dashboard metrics and reports update immediately.
+- Preserve existing data during initialization and updates.
+- Handle missing or malformed demo data safely.
+- Use the existing persistence mechanism for demo changes where supported.
+
+If browser storage is used, handle version changes carefully. Do not reset all existing application data merely to add front-office records.
+
+Do not store unnecessary sensitive personal information.
+
+If the project is frontend-only, be transparent that persistence is local/demo persistence rather than production-grade shared storage.
+
+---
+
+# 16. ACTIVITY HISTORY AND FEEDBACK
+
+Reuse existing SCHLAR notifications, confirmation dialogs, and activity-history patterns.
+
+Where supported, record events such as:
+- Visitor registered.
+- Visitor checked in.
+- Visitor checked out.
+- Appointment scheduled or rescheduled.
+- Enquiry created or updated.
+- Follow-up completed.
+- Call logged.
+- Reception request assigned or resolved.
+- Document request updated.
+
+Each operation should provide:
+- Clear validation errors.
+- Success feedback after the state update succeeds.
+- Confirmation before consequential actions.
+- Useful empty and no-results states.
+- Appropriate duplicate-action prevention.
+
+Do not show success feedback before the underlying state mutation succeeds.
+
+Do not record an action as completed if the record failed to update.
+
+For edits to important historical records, preserve the history or record the modification if the current architecture supports it.
+
+---
+
+# 17. RESPONSIVE WEB AND MOBILE EXPERIENCE
+
+Ensure the Receptionist workspace functions properly on desktop, tablet, and mobile.
+
+## Desktop
+- Efficient visitor and enquiry tables.
+- Clear sidebar navigation.
+- Fast access to check-in, check-out, and search.
+- Readable appointment and request details.
+- Forms organized into logical sections.
+
+## Tablet
+- Comfortable touch targets.
+- Efficient visitor registration and check-in.
+- Readable appointment schedules.
+- Easy access to today's visitors.
+
+## Mobile
+- Responsive visitor and enquiry lists.
+- Forms that fit the screen.
+- Clear primary actions.
+- Search and filters that remain accessible.
+- No horizontal overflow.
+- Dialogs that fit the viewport.
+- Easy access to active visitors and appointments.
+
+Reuse the existing mobile/app-style implementation where available.
+
+Do not build a separate disconnected data model for the mobile version.
+
+Keep web and mobile behavior consistent with the current application design and role-access model.
+
+---
+
+# 18. TESTING AND ACCEPTANCE CHECKLIST
+
+Do not stop after rendering the pages. Test the actual interactions.
+
+## Visitor workflow
+1. Register a new visitor.
+2. Validate missing required fields.
+3. Check in the visitor.
+4. Verify the visitor appears in Active Visitors.
+5. Attempt a duplicate check-in and verify it is prevented.
+6. Check out the visitor.
+7. Verify the visitor no longer appears in Active Visitors.
+8. Verify the visit remains in Visit History.
+9. Register a returning visitor and confirm a new visit is created without overwriting prior visits.
+10. Verify the daily visitor count updates.
+
+## Enquiry workflow
+11. Create an enquiry.
+12. Search and filter enquiries.
+13. Add a follow-up note.
+14. Set a follow-up date.
+15. Verify overdue and upcoming follow-ups appear correctly.
+16. Update an enquiry status.
+17. Verify duplicate conversion is prevented if conversion exists.
+18. Confirm the existing admissions workflow is reused where available.
+
+## Appointment workflow
+19. Schedule an appointment.
+20. Edit or reschedule it.
+21. Verify invalid times are rejected.
+22. Verify conflicting appointments produce a warning where conflict checking is supported.
+23. Link an appointment to a visitor check-in.
+24. Cancel or complete an appointment and verify the status updates.
+
+## Call and request workflows
+25. Record an incoming or outgoing call.
+26. Add a follow-up and complete it.
+27. Create a reception request.
+28. Assign it to a department or staff member.
+29. Update its status and resolve it.
+30. Verify the request history and dashboard metrics update.
+
+## Directory and privacy
+31. Search for an existing student.
+32. Verify the correct existing student record is shown.
+33. Verify student, parent, and staff records are not duplicated.
+34. Confirm restricted academic, financial, HR, and administrative actions remain unavailable to unauthorized users.
+35. Verify sensitive fields and notes respect existing permissions.
+
+## General regression tests
+36. Verify report totals match actual records.
+37. Verify changes persist according to the current demo-data mechanism.
+38. Reload the application and verify records remain consistent.
+39. Verify responsive layouts on desktop and mobile.
+40. Verify all visible buttons and navigation items perform the expected action.
+41. Verify the role-selection page still opens the Receptionist workspace correctly.
+42. Verify theme switching and existing palette selection still work.
+43. Open the earlier workspaces from Prompts 1–7 and check for regressions.
+44. Check for runtime errors and fix issues introduced by these changes.
+
+If a test cannot be run in the available environment, report it as unverified instead of claiming it passed.
+
+---
+
+# 19. IMPLEMENTATION ORDER
+
+Follow this order to reduce regression risk.
+
+**Phase 1 — Inspect the existing project**
+- Identify current components, routes, state, data models, and permissions.
+- Locate existing admissions, calendar, notification, document, and directory functionality.
+- Determine the smallest set of changes required.
+
+**Phase 2 — Build the workspace foundation**
+- Add the Receptionist workspace.
+- Integrate its navigation and dashboard.
+- Reuse existing theme and layout components.
+
+**Phase 3 — Implement visitor management**
+- Registration.
+- Check-in and check-out.
+- Active visitor list.
+- Visit history.
+- Visitor search and reporting.
+
+**Phase 4 — Implement enquiries and appointments**
+- Enquiry records.
+- Follow-ups.
+- Appointment scheduling.
+- Status management.
+- Existing admissions integration where available.
+
+**Phase 5 — Implement calls, requests, and directory lookup**
+- Call log.
+- Reception requests.
+- Student, parent, and staff lookup.
+- Document-request tracking.
+- Existing notification integration where available.
+
+**Phase 6 — Integrate and validate**
+- Permissions.
+- Shared school records.
+- Persistence.
+- Activity history.
+- Reports.
+- Responsive behavior.
+
+**Phase 7 — Test and refine**
+- Execute the acceptance checklist.
+- Fix functional and visual defects.
+- Verify Prompts 1–7 remain intact.
+- Provide an honest completion report.
+
+Do not create empty pages just to make the sidebar look complete. Each visible module must be meaningfully implemented or explicitly identified as incomplete.
+
+---
+
+# 20. DEFINITION OF DONE
+
+Prompt 8 is complete only when:
+
+- The Receptionist role opens a distinct, functional workspace.
+- The dashboard reflects real demo records.
+- Visitor registration, check-in, check-out, and visit history work.
+- Enquiries and follow-ups work.
+- Appointment scheduling and status management work.
+- Call logging and reception-request tracking work.
+- Existing student, parent, and staff records can be searched within permitted boundaries.
+- Document requests are tracked without bypassing approval workflows.
+- Reports reflect actual data.
+- Permissions are checked for restricted actions.
+- Data relationships remain consistent.
+- User feedback is clear and accurate.
+- The interface is professional and responsive.
+- Existing themes, routing, and role selection remain intact.
+- All previously working role workspaces from Prompts 1–7 remain functional.
+- Limitations and unverified integrations are disclosed honestly.
+
+---
+
+# 21. REQUIRED COMPLETION REPORT
+
+After implementation, provide:
+
+1. **Files modified or created** — important paths and their purpose.
+2. **Features implemented** — visitor, enquiry, appointment, call, request, lookup, and reporting workflows.
+3. **Shared integrations** — explain how existing student, parent, staff, admissions, and notification records are reused.
+4. **Permissions** — explain which actions are restricted and how checks are enforced.
+5. **Persistence** — explain how demo records are stored and what limitations remain.
+6. **Testing results** — list the tests actually performed and their outcomes.
+7. **Known limitations** — list incomplete features and integrations that do not exist.
+8. **Regression check** — identify which existing workspaces and shared features were checked.
+9. **Next step** — identify any defects that should be fixed before Prompt 9.
+
+Do not claim a feature is implemented merely because a page or button exists. Confirm that the workflow actually works.
+
+Do not return only a plan or static mockup. Modify the existing project and implement the functionality.
+
+**Begin by inspecting the current SCHLAR codebase, then implement Prompt 8 end-to-end while preserving all existing working functionality.**

@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  /* Authoritative SCHLAR Design Tokens: Palette 7 (Petrol & Copper - Default) */
+  --color-primary: #164E55;
+  --color-primary-rgb: 22, 78, 85;
+  --color-secondary: #287B7A;
+  --color-secondary-rgb: 40, 123, 122;
+  --color-accent: #C47D54;
+  --color-accent-rgb: 196, 125, 84;
+  --color-background: #F5F0E7;
+  --color-background-rgb: 245, 240, 231;
+  --color-surface: #FFFFFF;
+  --color-surface-rgb: 255, 255, 255;
+
+  /* Semantic UI Tokens */
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-error: #b91c1c;
+  --color-info: #0369a1;
+
+  /* Legacy aliases for backward compatibility */
+  --primary-accent: #164E55;
+  --primary-accent-hover: #287B7A;
+  --primary-accent-light: #F5F0E7;
+  --primary-accent-border: #287B7A40;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for clean dashboard styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* WCAG AA Visible Keyboard Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--color-primary, #164E55);
+  outline-offset: 2px;
+}
+
+/* Ensure touch targets respond smoothly */
+button, [role="button"], a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Tabular figures for numerical alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduced motion preference respect */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

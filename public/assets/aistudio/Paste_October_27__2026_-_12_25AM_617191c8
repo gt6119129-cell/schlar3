@@ -1,0 +1,799 @@
+# SCHLAR — PROMPT 9: SHARED SCHOOL MODULES & CROSS-ROLE INTEGRATION
+## One Connected School Management System | Consistent Records | Coordinated Workflows | Professional UX
+
+You are continuing development of SCHLAR, an existing school-management web and mobile frontend project.
+
+Implement **Prompt 9: Shared School Modules and Cross-Role Integration**.
+
+Prompts 1–8 have established the application foundation and role workspaces. Your responsibility now is to connect those workspaces through shared records, common services, consistent workflows, and synchronized frontend-demo data.
+
+The goal is not to create more disconnected dashboards. The goal is to make SCHLAR operate as one coherent school-management application in which authorized users work with the same underlying school records and each role sees the information and actions appropriate to its responsibilities.
+
+**Core SCHLAR principle: “Simple enough for a first-time user, powerful enough for a real school.”**
+
+Keep the interface easy to navigate without stripping away features, permissions, or necessary operational detail.
+
+---
+
+# 1. FIRST: INSPECT THE EXISTING PROJECT
+
+Before modifying any code, inspect the current SCHLAR codebase and understand what has already been implemented.
+
+Review:
+- The application architecture, framework, file structure, routing, and state-management approach.
+- The role-selection page and all existing role workspaces.
+- Shared layouts, navigation, profile components, notifications, forms, tables, and theme configuration.
+- Existing data models and their relationships.
+- Existing demo-data initialization and persistence.
+- Existing permissions and authorization checks.
+- Existing activity-history and validation mechanisms.
+- Student, parent, staff, class, section, subject, timetable, attendance, examination, fee, library, transport, enquiry, visitor, and other implemented modules.
+- The work completed in Prompts 1–8.
+- Any unfinished or duplicate modules and conflicting data structures.
+
+Create an internal implementation map before changing the project.
+
+For each shared entity, identify its current source of truth, which roles use it, and which screens create or update it.
+
+**Do not assume a feature is missing simply because it is implemented differently from your preferred architecture. Inspect the existing implementation first.**
+
+## Non-negotiable rules
+
+1. Do not rebuild SCHLAR from scratch.
+2. Do not delete or replace working pages, features, navigation, or role workspaces.
+3. Do not change the established branding, theme system, or role-selection flow.
+4. Do not introduce Student or Super Admin as new school-management roles.
+5. Preserve the exact existing 10-role system defined by the SCHLAR handover.
+6. Preserve the user's requirement for a Parent mobile app experience without creating a Parent web portal.
+7. Do not grant additional permissions merely to make integrations easier.
+8. Do not create duplicate student, parent, staff, class, fee, book, vehicle, or other records when shared records already exist.
+9. Do not introduce a separate disconnected data store for each role.
+10. Do not claim a real production backend, real-time synchronization between devices, real message delivery, or external integrations unless they genuinely exist.
+11. Do not erase existing demo data when updating the data model.
+12. Do not implement a visual redesign as a substitute for actual integration.
+
+Make the smallest coherent set of changes necessary to achieve reliable cross-role integration.
+
+---
+
+# 2. PRIMARY OBJECTIVE: ESTABLISH A SINGLE SOURCE OF TRUTH
+
+Identify the existing records that multiple workspaces depend on and make sure they reference consistent shared entities.
+
+Where the current architecture permits, use centralized models or services for shared data instead of copying records into separate role-specific collections.
+
+The shared data model should cover applicable entities such as:
+
+- Academic years and terms.
+- Classes and sections.
+- Students.
+- Parents and guardians.
+- Staff and teachers.
+- Subjects.
+- Teacher-subject assignments.
+- Timetable entries.
+- Attendance records.
+- Examination schedules and results.
+- Fee structures, student fee allocations, and transactions.
+- Library books, physical copies, members, and loans.
+- Vehicles, routes, stops, and transport assignments.
+- Enquiries and admissions.
+- Visitors and appointments.
+- Staff leave and HR records.
+- Notifications and school announcements.
+- Reception requests.
+- Activity history and audit information.
+
+Not every entity must be rebuilt. Reuse the existing models and adapt them carefully.
+
+## Required behavior
+
+- Each entity has a stable unique ID.
+- Related records reference that ID rather than relying solely on display names.
+- Editing a shared record updates all relevant views that use it.
+- Display names, class labels, and statuses remain consistent across roles.
+- Deactivated records are handled safely.
+- Historical transactions retain their original references.
+- Deleting or archiving a record does not silently corrupt related records.
+- Existing demo data remains usable after the integration.
+- The application does not create duplicates when a record is updated or reused.
+
+If a backend is not present, implement this through the existing centralized frontend state and persistence architecture. Clearly treat it as frontend-demo integration.
+
+---
+
+# 3. CENTRALIZE SHARED DATA ACCESS AND MUTATIONS
+
+Inspect whether SCHLAR already has a shared data service, repository, context, store, or equivalent abstraction.
+
+If one exists, extend it.
+
+If there is no suitable abstraction, introduce a lightweight, consistent shared data-access layer that fits the current framework and architecture.
+
+Avoid creating unnecessary architectural complexity.
+
+Centralize recurring operations such as:
+- Finding a student or staff member by ID.
+- Searching permitted school records.
+- Resolving class and section references.
+- Creating and updating records.
+- Validating references before saving.
+- Updating related state.
+- Recording permitted activity history.
+- Applying role-permission checks.
+- Persisting demo changes through the existing mechanism.
+
+## Important rules
+
+Do not allow one screen to mutate a local copy of a record while another screen continues displaying an outdated copy.
+
+Avoid maintaining multiple independent versions of the same student, staff member, or fee record.
+
+Use the project's existing state-management conventions. Do not replace the entire architecture with a new library without a demonstrated need.
+
+Do not introduce hidden side effects that make changes difficult to test.
+
+---
+
+# 4. CONNECT STUDENTS, PARENTS, STAFF, CLASSES, AND SECTIONS
+
+These are foundational records used throughout the school.
+
+## 4.1 Student records
+
+Ensure the same student record is used wherever applicable by:
+- Admin.
+- Vice Principal.
+- Teacher.
+- Parent mobile app.
+- Accountant / Fee Manager.
+- HR / Staff Manager, where staff-related student references are relevant.
+- Librarian.
+- Transport Manager.
+- Receptionist / Front Office.
+- Exam Coordinator.
+
+Each role must see only the information and actions permitted to that role.
+
+When an authorized user updates a student's permitted profile fields, all relevant screens should reflect the update.
+
+Do not duplicate the student merely because a student appears in a library list, transport list, fee list, examination list, or attendance list.
+
+## 4.2 Parent and guardian relationships
+
+Maintain consistent parent-to-student relationships.
+
+Support the existing model's relationship types and multiple guardians where applicable.
+
+Verify that:
+- A parent can view only the students linked to their authorized account or demo identity.
+- The Parent mobile app uses existing student records.
+- Parent contact information remains consistent across authorized modules.
+- Changing a relationship does not accidentally expose one family's data to another.
+- The receptionist can look up permitted parent information without receiving unrestricted access.
+- A student can retain relevant historical references when a parent or guardian relationship changes.
+
+Do not create a Parent web portal.
+
+## 4.3 Staff and teacher records
+
+Ensure teachers and staff are referenced consistently by their existing IDs.
+
+Relevant modules include:
+- Admin staff management.
+- Vice Principal operations.
+- Teacher workspace.
+- HR / Staff Manager.
+- Timetable assignments.
+- Attendance.
+- Examination duties, where supported.
+- Reception appointments.
+- Transport driver or attendant assignments, where applicable.
+
+Editing a staff member's permitted profile details should update relevant directory and assignment views.
+
+Do not overwrite HR-only fields when updating a teacher's teaching assignment.
+
+Do not treat a staff profile, employment record, teacher assignment, and user account as interchangeable entities if the existing model distinguishes them.
+
+## 4.4 Classes, sections, subjects, and academic years
+
+Maintain consistent references for:
+- Academic year.
+- Term or semester, if supported.
+- Class or grade.
+- Section.
+- Subject.
+- Teacher assignment.
+- Student enrolment.
+
+Verify that modules use the same academic-year and class/section references.
+
+Do not allow the attendance module, timetable, examination module, and student directory to display contradictory class or section labels for the same underlying assignment.
+
+Where historical academic data must be retained, do not rewrite past records merely because the student advances to another class.
+
+---
+
+# 5. TIMETABLE, SUBJECT, AND TEACHER-ASSIGNMENT INTEGRATION
+
+Connect timetable information with the existing class, section, subject, teacher, and academic-year records.
+
+Ensure that:
+- Timetable entries reference valid classes, sections, subjects, and teachers.
+- Teacher views show the correct assigned classes and periods.
+- Class timetables use the same entries as teacher timetables.
+- Administrative timetable changes appear in relevant workspaces.
+- Invalid or conflicting assignments are detected where the existing scheduling rules support them.
+- Historical timetable data is handled according to the current model.
+- A timetable entry cannot silently reference a nonexistent or inactive teacher or subject.
+
+If a timetable changes, relevant teacher and administrative views should update from the shared data.
+
+Do not rebuild the timetable interface if it already works. Improve its integration and validation instead.
+
+---
+
+# 6. ATTENDANCE INTEGRATION
+
+Connect existing academic attendance records to the shared student, class, section, teacher, timetable, and academic-year models.
+
+Preserve the existing attendance rules and user requirements.
+
+## Required behavior
+
+- Teachers should see only the relevant classes, subjects, periods, and students authorized by their assignments.
+- Attendance entries must reference the correct student and attendance session.
+- Class attendance summaries must derive from actual attendance records.
+- Authorized administrative views should use the same attendance records.
+- Corrections should update relevant summaries and history.
+- Duplicate attendance entries for the same student and session must be prevented.
+- An attendance record should not become attached to the wrong class, subject, or period after a timetable change.
+- Unmarked attendance must remain distinguishable from absent attendance.
+- Do not allow the Receptionist or Librarian to edit academic attendance unless explicitly authorized.
+
+Preserve the existing Present / Absent convention where implemented, including the user's requested ✓ for Present and X for Absent.
+
+Do not let transport boarding records overwrite academic attendance.
+
+If transport attendance exists, keep it as a separate attendance domain with its own route, date, and service references.
+
+---
+
+# 7. EXAMINATION AND RESULT INTEGRATION
+
+Integrate the existing examination workflow with student, class, section, subject, teacher, academic-year, and timetable records.
+
+Use the existing Exam Coordinator workspace and examination data model.
+
+Ensure that:
+- Examination schedules reference valid subjects and classes.
+- Students are drawn from the correct class/section and academic year.
+- Results reference the correct student and examination.
+- Marks and grade summaries derive from saved result records.
+- Authorized teachers or exam staff can access only the records permitted by existing rules.
+- Changes to student enrolment do not silently delete historical examination results.
+- Duplicate result entries are prevented.
+- Examination reports and student result views use the same underlying records.
+
+Do not invent new grading rules if the project already defines them.
+
+Do not expose confidential marks or results to the Receptionist, Librarian, or unrelated roles.
+
+If the examination module is incomplete, identify its current limitations and integrate only what is genuinely implemented.
+
+---
+
+# 8. FEES, PAYMENTS, AND ACCOUNTING INTEGRATION
+
+Connect the Accountant / Fee Manager workspace with the shared student, parent, academic-year, fee allocation, and payment records.
+
+The existing accounting or fee module must remain the source of truth for fee transactions.
+
+Ensure that:
+- Fee allocations reference valid students and applicable fee structures.
+- Student fee summaries reflect actual allocations and recorded transactions.
+- Parent mobile app fee information uses the authorized student's existing fee records.
+- Payment history and outstanding balances derive from consistent transactions.
+- Receipts reference the correct transaction.
+- Partial payments are allocated correctly.
+- Concessions, refunds, adjustments, and reversals follow the existing financial model.
+- Duplicate payment records are prevented.
+- A change to a student's permitted fee allocation updates all relevant fee views.
+- Transport-fee references, where implemented, use the existing accounting source of truth.
+- Transport staff do not receive unrestricted accounting permissions.
+
+Never mark a fee as paid merely because a form was opened or a button was clicked without a successful state update.
+
+Do not claim actual payment-gateway integration or money movement when the project only simulates payments.
+
+Do not create separate financial balances inside the Parent, Transport, or Receptionist modules.
+
+---
+
+# 9. LIBRARY INTEGRATION
+
+Connect the Librarian workspace to shared student and staff identities.
+
+Ensure that:
+- Library members reference existing students or staff.
+- Student class changes are reflected in relevant member details.
+- Book loans reference stable member and physical-copy IDs.
+- Issue, return, renewal, reservation, and fine records remain consistent.
+- Returning a book updates copy availability and active-loan lists.
+- Library statistics use actual catalogue and transaction records.
+- Historical transactions remain available after a student changes class.
+- Other roles do not gain library-management permissions automatically.
+
+If the Parent mobile app displays library information, reuse existing authorized records and show only the information appropriate to that parent and student.
+
+Do not create a second student library identity disconnected from the school record.
+
+---
+
+# 10. TRANSPORT INTEGRATION
+
+Connect the Transport Manager workspace to existing student, parent, staff, vehicle, route, and accounting records.
+
+Ensure that:
+- Student transport assignments reference existing student IDs.
+- Route assignments reference existing routes and stops.
+- Drivers and attendants reference the appropriate staff records.
+- Route capacity derives from active assignments.
+- Inactive assignments do not count as current passengers.
+- Transport assignment changes appear in all relevant authorized views.
+- Historical assignments are preserved.
+- Vehicle maintenance and document status remain linked to the correct vehicle.
+- Transport expenses use consistent expense records.
+- Transport fees, where supported, use the existing accounting module.
+- Parent mobile app transport information is restricted to the linked student's permitted information.
+
+Keep transport boarding attendance separate from academic attendance.
+
+Do not invent real GPS tracking, live bus locations, or external transport integrations.
+
+---
+
+# 11. ADMISSIONS, ENQUIRIES, AND STUDENT CREATION
+
+Connect Receptionist / Front Office enquiries with the existing admissions and student-management workflows where available.
+
+Ensure that:
+- Enquiries use stable enquiry IDs.
+- Prospective student information is not automatically treated as a confirmed student record.
+- A successful admission or conversion follows the existing admissions process.
+- A converted enquiry is not converted again accidentally.
+- Newly created students use the same shared student model as all other modules.
+- Parent or guardian links are created consistently.
+- Relevant class, section, and academic-year references are validated.
+- Historical enquiry information is retained where appropriate.
+
+If the application does not have a complete admissions workflow, do not invent one and label it production-ready. Document the limitation and maintain clear boundaries between an enquiry, an admission, and an enrolled student.
+
+---
+
+# 12. RECEPTION, VISITORS, AND APPOINTMENTS
+
+Integrate visitor and appointment records with the existing staff directory and reception workflows.
+
+Ensure that:
+- An appointment references the appropriate staff member or department.
+- Visitor check-in can be linked to an appointment when applicable.
+- Walk-in visits remain supported.
+- Checking out a visitor updates active-visitor lists.
+- Visitor history remains intact.
+- Reception requests use consistent assignment and status records.
+- Staff and department names are resolved from shared records where appropriate.
+- Reception users cannot access confidential student, staff, or financial information merely because a visitor references it.
+
+Reuse the existing reception implementation rather than building a duplicate visitor-management module.
+
+---
+
+# 13. HR, STAFF LEAVE, AND EMPLOYEE WORKFLOWS
+
+Connect HR records to shared staff identities without exposing confidential employment data to unrelated roles.
+
+Ensure that:
+- Staff profiles use stable staff IDs.
+- Leave requests reference the correct staff member.
+- Authorized leave decisions update the request status and relevant leave summaries.
+- Staff attendance uses the existing attendance model.
+- Teacher assignments remain distinct from HR employment records.
+- Transport driver and attendant assignments reference existing staff where appropriate.
+- Reception appointments use staff-directory information without exposing confidential HR details.
+- Restricted HR documents, compensation, and employment information remain protected.
+
+Do not create separate employee identities in each module.
+
+Do not grant teachers, receptionists, librarians, or transport users unrestricted HR access.
+
+---
+
+# 14. SHARED NOTIFICATIONS AND ACTIVITY HISTORY
+
+Inspect the existing notification and activity-history systems before changing them.
+
+Reuse them wherever possible.
+
+## Notification integration
+
+Where supported, provide consistent in-app notifications for relevant events, such as:
+- New or changed appointments.
+- Assigned reception requests.
+- Follow-ups due.
+- Staff leave decisions.
+- Relevant fee-status changes.
+- Book due dates or overdue loans.
+- Transport assignment changes.
+- Examination schedule changes.
+- Other events already supported by the existing application.
+
+Requirements:
+- Notifications must reference the correct underlying record.
+- Each recipient must be authorized to see the notification.
+- Notifications must not reveal sensitive information in a preview.
+- Read/unread status must update correctly if supported.
+- Duplicate notifications should be avoided where the current model permits deduplication.
+- Use clear wording that distinguishes a recorded demo event from a message actually delivered externally.
+
+Do not generate notifications for every minor edit. Prioritize actionable events.
+
+Do not claim email, SMS, push-notification, or external delivery unless implemented.
+
+## Activity history
+
+Reuse the existing activity log where possible.
+
+For important changes, record:
+- Action type.
+- Related entity.
+- Entity ID.
+- Actor reference, if available.
+- Date and time.
+- Relevant status change.
+- Additional context appropriate to the role.
+
+Keep the activity history consistent with actual state changes.
+
+Do not log successful completion before an action succeeds.
+
+Do not allow ordinary users to alter or erase audit history unless the existing authorized design explicitly supports such an operation.
+
+---
+
+# 15. CROSS-ROLE WORKFLOW REQUIREMENTS
+
+Verify that shared workflows behave consistently across roles.
+
+Implement or repair the following workflows where the corresponding modules already exist.
+
+## Workflow A — Student profile
+
+1. An authorized administrator creates or edits a student.
+2. The student appears in the appropriate class and section lists.
+3. Authorized teachers can find the student for their assigned classes.
+4. The Accountant can access the appropriate fee records.
+5. The Librarian can use the same student identity for library membership.
+6. The Transport Manager can use the same identity for transport assignment.
+7. The Receptionist can look up only the permitted student information.
+8. The Parent mobile app displays only the appropriate linked student's information.
+9. Existing historical attendance, fee, library, and transport records remain correctly linked.
+
+## Workflow B — Staff profile
+
+1. An authorized administrator or HR user creates or updates a staff record.
+2. The staff directory reflects the change.
+3. Teacher and timetable assignments continue to reference the correct identity.
+4. Reception appointments resolve the correct staff member.
+5. Transport assignments reference the correct staff member where applicable.
+6. HR-sensitive fields remain restricted.
+
+## Workflow C — Fee transaction
+
+1. The Accountant records a valid demo fee transaction.
+2. The transaction is saved to the existing fee data model.
+3. The student's outstanding balance recalculates.
+4. The payment history and receipt view update.
+5. The authorized Parent mobile app view reflects the appropriate fee status.
+6. Other roles see only the permitted summary, if they have access.
+7. No second fee transaction is created merely to update another screen.
+
+## Workflow D — Book issue and return
+
+1. The Librarian issues an available physical book copy to an eligible member.
+2. The copy becomes unavailable for another loan.
+3. The member's active-loan list updates.
+4. Due-date and overdue information are consistent.
+5. Returning the copy updates its condition and availability.
+6. Library reports recalculate.
+7. Existing student and staff identities remain unchanged.
+
+## Workflow E — Transport assignment
+
+1. The Transport Manager assigns an existing student to a valid route and stops.
+2. Route capacity recalculates.
+3. The route-wise student list updates.
+4. The linked student's transport details update in permitted views.
+5. Any applicable transport-fee reference remains linked to the existing accounting records.
+6. Historical assignments remain intact when the student changes routes.
+
+## Workflow F — Reception enquiry and appointment
+
+1. The Receptionist creates an enquiry.
+2. The enquiry is assigned or scheduled for follow-up.
+3. An appointment is created and linked when applicable.
+4. The appointment appears in the relevant schedule.
+5. A visitor's arrival can be linked to the appointment.
+6. The visitor's check-in and check-out states remain accurate.
+7. The enquiry, appointment, and visit histories remain connected without duplicating identities.
+
+## Workflow G — Academic timetable and attendance
+
+1. An authorized user updates a timetable entry.
+2. Relevant teacher and class timetable views update.
+3. Attendance sessions use valid class, subject, teacher, and period references.
+4. Attendance updates recalculate the relevant summaries.
+5. Transport attendance remains separate.
+
+If a workflow depends on a module that is not implemented, identify that limitation instead of inventing a successful integration.
+
+---
+
+# 16. CENTRALIZED PERMISSIONS AND DATA PRIVACY
+
+Integrate with the existing permission system rather than introducing conflicting rules.
+
+The exact 10-role system defined by the SCHLAR handover must remain intact.
+
+Ensure that:
+- Each role sees only the pages and records it is permitted to access.
+- Restricted actions are checked when state changes occur.
+- Hiding a button is not treated as the only authorization check.
+- Parent mobile app data is limited to the parent's authorized linked students.
+- Receptionists do not gain unrestricted student, financial, HR, or academic access.
+- Librarians do not gain unrestricted accounting or HR access.
+- Transport Managers do not gain unrestricted financial or academic access.
+- Teachers do not gain unrestricted administrative privileges.
+- Accountants do not automatically gain HR or unrelated academic-editing privileges.
+- HR permissions remain separate from accounting permissions where required by the existing design.
+- Historical records remain accessible only to appropriately authorized users.
+
+Test direct action paths and unauthorized operations where the current architecture allows it.
+
+Do not expand permissions silently to avoid implementation work.
+
+---
+
+# 17. DATA MIGRATION AND BACKWARD COMPATIBILITY
+
+Adding shared integration must not destroy existing demo data.
+
+Inspect the current demo-data structure and persistence mechanism before modifying it.
+
+If the existing application stores data in browser storage or another local mechanism:
+- Preserve existing records.
+- Introduce compatible defaults for newly required fields.
+- Handle missing optional fields safely.
+- Handle malformed stored data without silently wiping the entire dataset.
+- Migrate older demo records carefully when a schema change is necessary.
+- Preserve stable IDs wherever possible.
+- Avoid generating duplicate starter data on every reload.
+- Keep data initialization idempotent.
+
+Do not reset all existing records to make the new shared model easier to implement.
+
+If an existing record cannot be migrated safely, report the issue and use a safe, explicit fallback rather than silently discarding it.
+
+If the application is frontend-only, explain the actual persistence scope accurately. Do not claim that browser-local data automatically synchronizes between different devices or users.
+
+---
+
+# 18. DASHBOARD AND REPORT CONSISTENCY
+
+Verify that dashboards and reports derive their values from the shared records rather than unrelated hard-coded arrays.
+
+Where the same metric appears in multiple views, ensure it follows the same definition.
+
+Examples:
+- Active student counts use the same student-status rules.
+- Class lists use consistent class and section references.
+- Fee balances derive from existing fee allocations and transactions.
+- Library availability derives from copy and loan states.
+- Route capacity derives from active transport assignments.
+- Visitor counts derive from visit records and check-in/check-out states.
+- Attendance summaries derive from the appropriate academic attendance records.
+- Examination summaries derive from actual saved examination records.
+
+Avoid changing business rules merely to make numbers match. If two modules legitimately use different definitions, document the difference clearly.
+
+All empty states must be honest.
+
+Do not populate dashboards with fabricated activity to make the application appear busy.
+
+---
+
+# 19. PROFESSIONAL NAVIGATION AND SHARED COMPONENTS
+
+Preserve the existing SCHLAR navigation and theme system.
+
+Improve consistency where appropriate:
+- Shared page headers.
+- Breadcrumbs, where already used.
+- Search controls.
+- Filter layouts.
+- Status badges.
+- Form validation.
+- Confirmation dialogs.
+- Notification patterns.
+- Empty states.
+- Loading states.
+- Error states.
+- Profile summaries.
+- Table actions.
+- Pagination.
+- Responsive layouts.
+
+Reuse common components when this reduces duplication and improves consistency.
+
+Do not force every module into an identical layout if its workflow requires a different presentation.
+
+Do not redesign the role-selection page or introduce a new role chooser.
+
+Do not create a Parent web portal.
+
+Keep the mobile experience aligned with the existing Parent mobile app and other role-specific mobile experiences already established by the project.
+
+---
+
+# 20. REQUIRED TESTING
+
+Do not stop after modifying components or connecting a few screens.
+
+Run the following tests using the project's actual implementation.
+
+## Shared records
+1. Create or edit an existing student through an authorized workflow.
+2. Verify relevant class and section lists update.
+3. Verify the same student can be found in the applicable fee, library, and transport modules.
+4. Confirm no duplicate student identity is created.
+5. Update a staff record and verify relevant directory and assignment views.
+
+## Academic workflows
+6. Verify class, section, subject, and academic-year references are consistent.
+7. Update a timetable entry and verify relevant teacher and class views.
+8. Record attendance and verify the appropriate summaries update.
+9. Verify transport attendance does not alter academic attendance.
+10. Verify examination schedules and results use the correct shared references.
+
+## Financial workflows
+11. Record a valid demo fee transaction.
+12. Verify the correct outstanding balance and transaction history.
+13. Verify the authorized Parent mobile app view reflects the relevant fee information.
+14. Confirm that unauthorized roles cannot perform restricted financial operations.
+15. Confirm no duplicate payment record is created during synchronization.
+
+## Library and transport
+16. Issue and return a book and verify copy availability, loan history, and reports.
+17. Assign a student to a route and verify capacity and route lists.
+18. Change a transport assignment and verify relevant views update.
+19. Verify vehicle and staff references remain valid.
+
+## Reception and shared operations
+20. Create an enquiry and appointment.
+21. Link a visitor check-in to an appointment.
+22. Check out the visitor and verify visit history.
+23. Verify notifications or activity entries are created only when supported and appropriate.
+
+## Security and persistence
+24. Test unauthorized actions in the relevant roles.
+25. Verify parent data isolation.
+26. Reload the application and check demo-data persistence.
+27. Verify initialization does not duplicate records.
+28. Verify historical records remain linked after profile changes.
+29. Verify dashboards and reports reflect actual records.
+30. Verify the existing theme and role-selection flow remain intact.
+
+## Regression
+31. Open every previously implemented role workspace.
+32. Test its main navigation and important workflows.
+33. Verify no routes, buttons, or pages disappeared.
+34. Check for runtime errors and broken imports.
+35. Run the existing build or validation commands if available.
+
+Do not claim a test passed unless it was actually performed.
+
+If the environment prevents a test, identify it as unverified and explain why.
+
+---
+
+# 21. IMPLEMENTATION SEQUENCE
+
+Follow this order.
+
+**Phase 1 — Audit**
+- Inspect existing code and data models.
+- Identify duplicate records and inconsistent sources of truth.
+- Map shared entities and role dependencies.
+- Identify risks to existing functionality.
+
+**Phase 2 — Shared data foundation**
+- Extend existing models and data services.
+- Standardize references and IDs where needed.
+- Improve safe validation and mutation patterns.
+- Preserve existing data and persistence.
+
+**Phase 3 — Core school records**
+- Integrate students, parents, staff, classes, sections, subjects, and academic years.
+- Validate existing timetable and attendance relationships.
+- Preserve the current examination model.
+
+**Phase 4 — Operational modules**
+- Integrate fee and payment references.
+- Integrate library and transport records.
+- Integrate reception and enquiry workflows.
+- Connect HR and staff-related records where appropriate.
+
+**Phase 5 — Cross-role workflows**
+- Complete the applicable workflows listed above.
+- Fix inconsistent state and duplicate records.
+- Connect relevant notifications and activity history.
+
+**Phase 6 — Permissions and privacy**
+- Verify role-specific access.
+- Fix any unintended information exposure.
+- Verify unauthorized state changes are rejected.
+
+**Phase 7 — Testing and regression**
+- Execute the acceptance checklist.
+- Fix integration defects.
+- Recheck the earlier role workspaces.
+- Provide an honest completion report.
+
+Keep changes focused. Do not use Prompt 9 as an excuse to rewrite unrelated modules or redesign the entire application.
+
+---
+
+# 22. DEFINITION OF DONE
+
+Prompt 9 is complete only when:
+
+- Shared school records have clear sources of truth.
+- Student, parent, and staff identities remain consistent across relevant modules.
+- Classes, sections, subjects, and academic-year references are consistent.
+- Timetable and academic attendance use valid shared references.
+- Examination data remains correctly linked to students and subjects.
+- Fee transactions and balances use the existing accounting source of truth.
+- Library loans and transport assignments reference shared school records.
+- Reception enquiries, appointments, and visits remain linked where applicable.
+- HR and staff workflows reuse existing staff identities.
+- Related screens update when shared records change.
+- Dashboard values and reports derive from actual records.
+- Permissions remain enforced.
+- Demo data and historical records are preserved.
+- The Parent experience remains mobile-app-only, with no Parent web portal.
+- Existing functionality from Prompts 1–8 remains intact.
+- The implementation is tested and its limitations are documented honestly.
+
+---
+
+# 23. REQUIRED COMPLETION REPORT
+
+After implementation, provide:
+
+1. **Files modified** — important files and why they changed.
+2. **Shared data model** — describe the actual shared records and relationships.
+3. **Integrations completed** — list the workflows genuinely connected across roles.
+4. **Source of truth** — explain how shared entities and financial transactions are managed.
+5. **Permissions and privacy** — summarize the checks implemented and tested.
+6. **Persistence and migration** — explain how existing demo data was preserved.
+7. **Testing performed** — list actual tests and results.
+8. **Regression check** — state which earlier workspaces and workflows were verified.
+9. **Known limitations** — identify incomplete integrations and unverified tests.
+10. **Next step** — list issues that must be resolved before Prompt 10.
+
+Do not claim cross-device synchronization or backend integration if the current project does not support it.
+
+Do not claim all modules are integrated merely because they share a similar UI.
+
+**Begin by inspecting the existing SCHLAR codebase, then implement Prompt 9 as a focused integration pass. Preserve all working features, connect the real underlying demo records, test the cross-role workflows, and report accurately what works.**
